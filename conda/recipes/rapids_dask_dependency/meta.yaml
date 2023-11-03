@@ -1,8 +1,13 @@
 # Copyright (c) 2023, NVIDIA CORPORATION.
 
+{% set version = environ['RAPIDS_PACKAGE_VERSION'].lstrip('v') %}
+
 package:
-- name: rapids_dask_dependency
-  version: 23.12.00a0
+  name: rapids_dask_dependency
+  version: {{ version }}
+
+source:
+  path: ../../..
 
 build:
   number: 0

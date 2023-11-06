@@ -8,10 +8,16 @@ The `rapids_dask_dependency` package encodes both `dask` and `distributed` requi
 # Metapackage Versioning
 
 During the development cycle for RAPIDS, this metapackage will be released as an alpha-versioned package, e.g. `23.10.00a0`.
-RAPIDS repos will only pin up to the RAPIDS patch version, i.e. `==23.10.00.*`.
+
+For conda packages, RAPIDS repos will only pin up to the RAPIDS patch version, i.e. `==23.10.00.*`.
 When RAPIDS hits code freeze and we pin dask versions, the package versions in this repository should be pinned.
 At this time, a non-alpha release of the metapackage will be created, `23.10.00`.
 This new metapackage version will be automatically picked up by other RAPIDS libraries since they will be using a `==23.10.00.*` pin.
+
+For pip wheels, RAPIDS repos will need to set up their wheel building scripts to add an alpha spec `>=0.0.0a0` to the dask dependencies in pyproject.toml.
+The alpha spec addition should be conditional on whether the package is being built as a nightly or a release.
+That will ensure that upon release of rapids-dask-dependency the correct version will be picked up.
+This is the same strategy used to have RAPIDS repositories pull nightly versions of other RAPIDS dependencies (e.g. cudf requires rmm nightlies).
 
 # Requiring Dask nightlies
 

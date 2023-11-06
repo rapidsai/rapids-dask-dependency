@@ -13,7 +13,6 @@ version=$(rapids-generate-version)
 sed -i "s/^version = .*/version = \"${version}\"/g" "${package_dir}/pyproject.toml"
 
 cd "${package_dir}"
-python -m pip install build
-python -m build . -w -vvv --no-deps --disable-pip-version-check
+python -m pip wheel . -w dist -vvv --no-deps --disable-pip-version-check
 
 RAPIDS_PY_WHEEL_NAME="${package_name}" rapids-upload-wheels-to-s3 dist

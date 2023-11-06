@@ -34,6 +34,8 @@ jobs:
       branch: ${{ inputs.branch }}
       date: ${{ inputs.date }}
       sha: ${{ inputs.sha }}
+      # Package is pure Python and only ever requires one build.
+      matrix_filter: map(select(.ARCH == "amd64" and .PY_VER == "3.10" and .CUDA_VER == "12.0.1"))
   upload-conda:
     needs: python-build
     secrets: inherit
@@ -52,6 +54,8 @@ jobs:
       sha: ${{ inputs.sha }}
       date: ${{ inputs.date }}
       script: ci/build_wheel.sh
+      # Package is pure Python and only ever requires one build.
+      matrix_filter: map(select(.ARCH == "amd64" and .PY_VER == "3.10" and .CUDA_VER == "12.0.1"))
   wheel-publish:
     needs: wheel-build
     secrets: inherit

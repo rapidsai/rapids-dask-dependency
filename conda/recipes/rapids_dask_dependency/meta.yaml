@@ -15,20 +15,20 @@ build:
 
 requirements:
   run:
-    - dask >=2023.7.1
-    - dask-core >=2023.7.1
-    - distributed >=2023.7.1
+    - dask >=2023.9.2
+    - dask-core >=2023.9.2
+    - distributed >=2023.9.2
 
 about:
   home: https://rapids.ai/
   license: Apache-2.0
   license_file: LICENSE
-  summary: Standardized dask dependency pinnings across RAPIDS
+  summary: Standardized Dask dependency pinnings across RAPIDS
   description: |
     This metapackage encodes the standard Dask version pinning used for a
     particular release of RAPIDS. The metapackage adds an extra release segment
     to the RAPIDS CalVer to allow pinnings in this metapackage to be updated
-    for a given release and automatically propagate to its dependents. 
+    for a given release and automatically propagate to its dependents.
   doc_url: https://docs.rapids.ai/
   dev_url: https://github.com/rapidsai/rapids_dask_dependency
 

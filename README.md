@@ -14,10 +14,10 @@ When RAPIDS hits code freeze and we pin Dask versions, the package versions in t
 At this time, a non-alpha release of the metapackage will be created, `23.10.00`.
 This new metapackage version will be automatically picked up by other RAPIDS libraries since they will be using a `==23.10.00.*` pin.
 
-For pip wheels, RAPIDS repos will need to set up their wheel building scripts to add an alpha spec `>=23.10.00a0` to the Dask dependencies in pyproject.toml.
+For pip wheels, RAPIDS repos will need to set up their wheel building scripts to add an alpha spec `>=23.10.00a0` to the Dask dependencies in `pyproject.toml`.
 The alpha spec addition should be conditional on whether the package is being built as a nightly or a release.
 That will ensure that upon release of rapids-dask-dependency the correct version will be picked up.
-This is the same strategy used to have RAPIDS repositories pull nightly versions of other RAPIDS dependencies (e.g. cudf requires rmm nightlies).
+This is the same strategy used to have RAPIDS repositories pull nightly versions of other RAPIDS dependencies (e.g. `cudf` requires `rmm` nightlies).
 
 # Requiring Dask nightlies
 

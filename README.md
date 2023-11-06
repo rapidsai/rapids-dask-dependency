@@ -21,7 +21,7 @@ This is the same strategy used to have RAPIDS repositories pull nightly versions
 
 # Requiring Dask nightlies
 
-Prior to final pinning for a release, Dask versions should be specified using PEP 440-compatible versions like `>=2023.7.1a0` so that nightlies may be picked up.
+During RAPIDS development phase, Dask versions should be specified using PEP 440-compatible versions like `>=2023.7.1a0` so that nightlies may be picked up.
 For conda, nightlies are published to the [dask channel](https://anaconda.org/dask/).
 The metapackage assumes that the `dask/label/dev` channel is included in a user's condarc so that the nightly will be found.
 For pip, no nightlies are published so the packages must be installed directly from source.

@@ -21,7 +21,7 @@ requirements:
 
 about:
   home: https://rapids.ai/
-  license: Custom
+  license: Apache-2.0
   license_file: LICENSE
   summary: Standardized dask dependency pinnings across RAPIDS
   description: |

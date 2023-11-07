@@ -3,7 +3,7 @@
 This repository provides metapackages for pip and conda that centralize the Dask version dependency across RAPIDS.
 Dask's API instability means that each RAPIDS release must pin to a very specific Dask release to avoid incompatibilities.
 These metapackages provide a centralized, versioned storehouse for that pinning.
-The `rapids_dask_dependency` package encodes both `dask` and `distributed` requirements.
+The `rapids-dask-dependency` package encodes both `dask` and `distributed` requirements.
 
 # Metapackage Versioning
 

@@ -3,7 +3,7 @@
 {% set version = environ['RAPIDS_PACKAGE_VERSION'].lstrip('v') %}
 
 package:
-  name: rapids_dask_dependency
+  name: rapids-dask-dependency
   version: {{ version }}
 
 source:

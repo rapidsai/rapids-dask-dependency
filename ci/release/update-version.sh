@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (c) 2020-2023, NVIDIA CORPORATION.
+# Copyright (c) 2023, NVIDIA CORPORATION.
 
 ## Usage
 # bash update-version.sh <new_version>

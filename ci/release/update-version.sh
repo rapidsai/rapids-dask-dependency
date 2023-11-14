@@ -28,5 +28,4 @@ sed_runner "s/^version = .*/version = \"${NEXT_FULL_TAG}a0\"/" pip/rapids_dask_d
 
 for FILE in .github/workflows/*.yaml; do
   sed_runner "/shared-workflows/ s/@.*/@branch-${NEXT_SHORT_TAG}/g" "${FILE}"
-  sed_runner "s/dask-cuda.git@branch-[^\"\s]\+/dask-cuda.git@branch-${NEXT_SHORT_TAG}/g" ${FILE}
 done

@@ -65,4 +65,4 @@ jobs:
       branch: ${{ inputs.branch }}
       sha: ${{ inputs.sha }}
       date: ${{ inputs.date }}
-      package-name: rapids-dask-dependency
+      package-name: rapids_dask_dependency

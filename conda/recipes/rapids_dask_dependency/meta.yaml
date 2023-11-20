@@ -30,5 +30,5 @@ about:
     to the RAPIDS CalVer to allow pinnings in this metapackage to be updated
     for a given release and automatically propagate to its dependents.
   doc_url: https://docs.rapids.ai/
-  dev_url: https://github.com/rapidsai/rapids_dask_dependency
+  dev_url: https://github.com/rapidsai/rapids-dask-dependency
 

@@ -24,7 +24,7 @@ function sed_runner() {
   sed -i.bak ''"$1"'' $2 && rm -f ${2}.bak
 }
 
-sed_runner "s/^version = .*/version = \"${NEXT_FULL_TAG}a0\"/" pip/rapids_dask_dependency/pyproject.toml
+sed_runner "s/^version = .*/version = \"${NEXT_FULL_TAG}a0\"/" pip/rapids-dask-dependency/pyproject.toml
 
 for FILE in .github/workflows/*.yaml; do
   sed_runner "/shared-workflows/ s/@.*/@branch-${NEXT_SHORT_TAG}/g" "${FILE}"

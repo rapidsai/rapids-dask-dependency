@@ -12,8 +12,8 @@ name = "rapids-dask-dependency"
 version = "23.12.00a0"
 description = "Dask and Distributed version pinning for RAPIDS"
 dependencies = [
-    "dask==2023.11.0",
-    "distributed==2023.11.0",
+    "dask @ git+https://github.com/dask/dask.git@main",
+    "distributed @ git+https://github.com/dask/distributed.git@main",
 ]
 
 [tool.setuptools]

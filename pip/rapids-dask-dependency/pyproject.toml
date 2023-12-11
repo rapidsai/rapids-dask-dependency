@@ -15,7 +15,7 @@ dependencies = [
     "dask @ git+https://github.com/dask/dask.git@main",
     "distributed @ git+https://github.com/dask/distributed.git@main",
 ]
-license = { text = "Apache 2.0" }
+license = { text = "Apache-2.0" }
 
 [tool.setuptools]
 license-files = ["LICENSE"]

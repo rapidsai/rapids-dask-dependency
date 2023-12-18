@@ -16,6 +16,7 @@ dependencies = [
     "distributed @ git+https://github.com/dask/distributed.git@main",
 ]
 license = { text = "Apache 2.0" }
+readme = { file = "README.md", content-type = "text/markdown" }
 
 [tool.setuptools]
 license-files = ["LICENSE"]

@@ -13,7 +13,7 @@ version = "24.02.00a0"
 description = "Dask and Distributed version pinning for RAPIDS"
 dependencies = [
     "dask @ git+https://github.com/dask/dask.git@main",
-    "distributed @ git+https://github.com/dask/distributed.git@main",
+    "distributed @ git+https://github.com/dask/distributed.git@7562f9c566978de4f3f5b73920a24ea1813d6e28",
 ]
 license = { text = "Apache 2.0" }
 readme = { file = "README.md", content-type = "text/markdown" }

@@ -15,9 +15,9 @@ build:
 
 requirements:
   run:
-    - dask >=2023.11.0
-    - dask-core >=2023.11.0
-    - distributed >=2023.11.0
+    - dask ==2024.1.1
+    - dask-core ==2024.1.1
+    - distributed ==2024.1.1
 
 about:
   home: https://rapids.ai/

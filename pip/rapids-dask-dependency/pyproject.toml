@@ -9,13 +9,14 @@ requires = [
 
 [project]
 name = "rapids-dask-dependency"
-version = "23.12.01a0"
+version = "24.02.00a0"
 description = "Dask and Distributed version pinning for RAPIDS"
 dependencies = [
-    "dask==2023.11.0",
-    "distributed==2023.11.0",
+    "dask==2024.1.1",
+    "distributed==2024.1.1",
 ]
 license = { text = "Apache 2.0" }
+readme = { file = "README.md", content-type = "text/markdown" }
 
 [tool.setuptools]
 license-files = ["LICENSE"]

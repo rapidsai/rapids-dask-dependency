@@ -24,3 +24,7 @@ license-files = ["LICENSE"]
 
 [tool.setuptools.packages.find]
 include = ["rapids_dask_dependency*"]
+
+[tool.ruff]
+select = ["E", "F", "W", "I", "N", "D", "UP", "CPY"]
+fixable = ["ALL"]

@@ -12,7 +12,7 @@ from .patches.distributed import patches as distributed_patches
 
 class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
     def create_module(self, spec):
-        if spec.name in ("dask", "distributed"):
+        if spec.name.startswith("dask") or spec.name.startswith("distributed"):
             with self.disable():
                 mod = importlib.import_module(spec.name)
 
@@ -23,12 +23,14 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
             spec.origin = mod.__spec__.origin
             spec.submodule_search_locations = mod.__spec__.submodule_search_locations
 
-            patches = dask_patches if spec.name == "dask" else distributed_patches
+            # TODO: I assume we'll want to only apply patches to specific submodules,
+            # that'll be up to RAPIDS dask devs to decide.
+            patches = dask_patches if "dask" in spec.name else distributed_patches
             for patch in patches:
                 patch(mod)
             return mod
 
-    def exec_module(self, mod):
+    def exec_module(self, _):
         pass
 
     @contextmanager

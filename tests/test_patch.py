@@ -1,5 +1,5 @@
-from multiprocessing import Process
 from functools import wraps
+from multiprocessing import Process
 
 
 def run_test_in_subprocess(func):

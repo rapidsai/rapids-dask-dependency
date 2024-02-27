@@ -36,6 +36,3 @@ class DaskFinder(importlib.abc.MetaPathFinder):
             self = cls()
             sys.meta_path.insert(0, self)
         return self
-
-
-DaskFinder.install()

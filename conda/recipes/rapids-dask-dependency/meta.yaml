@@ -32,4 +32,3 @@ about:
     for a given release and automatically propagate to its dependents.
   doc_url: https://docs.rapids.ai/
   dev_url: https://github.com/rapidsai/rapids_dask_dependency
-

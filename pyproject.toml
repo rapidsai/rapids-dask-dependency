@@ -26,5 +26,5 @@ license-files = ["LICENSE"]
 include = ["rapids_dask_dependency*"]
 
 [tool.ruff]
-select = ["E", "F", "W", "I", "N", "D", "UP", "CPY"]
-fixable = ["ALL"]
+lint.select = ["E", "F", "W", "I", "N", "UP"]
+lint.fixable = ["ALL"]

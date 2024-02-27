@@ -40,8 +40,11 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
             sys.meta_path.insert(0, self)
 
     def find_spec(self, fullname: str, _, __=None):
-        if fullname in ("dask", "distributed") or fullname.startswith(
-            "dask.") or fullname.startswith("distributed."):
+        if (
+            fullname in ("dask", "distributed")
+            or fullname.startswith("dask.")
+            or fullname.startswith("distributed.")
+        ):
             return importlib.machinery.ModuleSpec(
                 name=fullname,
                 loader=self,

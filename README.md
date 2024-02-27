@@ -8,7 +8,7 @@ The `rapids-dask-dependency` package encodes both `dask` and `distributed` requi
 # Versioning the Metapackage Itself
 
 This package is versioned just like the rest of RAPIDS: using CalVer, with alpha tags (trailing a\*) for nightlies.
-Nightlies of the metapackage should be consumed just like nightlies of any other RAPIDS package: 
+Nightlies of the metapackage should be consumed just like nightlies of any other RAPIDS package:
   - conda packages should pin up to the minor version with a trailing `.*`, i.e. `==23.10.*`. Conda will allow nightlies to match, so no further intervention is needed.
   - pip packages should have the same pin, but wheel building scripts must add an alpha spec `>=0.0.0a0` when building nightlies to allow rapids-dask-dependency nightlies. This is the same strategy used to have RAPIDS repositories pull nightly versions of other RAPIDS dependencies (e.g. `cudf` requires `rmm` nightlies).
 

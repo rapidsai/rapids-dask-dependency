@@ -10,11 +10,14 @@ from .patches.dask import patch_dask_attr
 from .patches.distributed import patch_distributed_attr
 
 
-class DaskFinder(importlib.abc.MetaPathFinder, importlib.abc.Loader):
+class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
     def create_module(self, spec):
         if spec.name in ("dask", "distributed"):
             with self.disable():
-                return importlib.import_module(spec.name)
+                mod = importlib.import_module(spec.name)
+            spec.origin = mod.__spec__.origin
+            spec.submodule_search_locations = mod.__spec__.submodule_search_locations
+            return mod
 
     def exec_module(self, mod):
         if mod.__name__ == "dask":
@@ -30,23 +33,13 @@ class DaskFinder(importlib.abc.MetaPathFinder, importlib.abc.Loader):
         finally:
             sys.meta_path.insert(0, self)
 
-    def find_spec(
-        self, fullname: str, _, __=None
-    ) -> importlib.machinery.ModuleSpec | None:
-        if fullname == "dask" or fullname.startswith("dask."):
+    def find_spec(self, fullname: str, _, __=None):
+        if fullname in ("dask", "distributed") or fullname.startswith(
+            "dask.") or fullname.startswith("distributed."):
             return importlib.machinery.ModuleSpec(
                 name=fullname,
                 loader=self,
-                # TODO: Figure out how to set the origin and loader_state correctly
-                origin=None,
-                loader_state=None,
-                is_package=True,
-            )
-        if fullname == "distributed" or fullname.startswith("distributed."):
-            return importlib.machinery.ModuleSpec(
-                name=fullname,
-                loader=self,
-                # TODO: Figure out how to set the origin and loader_state correctly
+                # Set these parameters dynamically in create_module
                 origin=None,
                 loader_state=None,
                 is_package=True,

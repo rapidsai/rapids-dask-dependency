@@ -6,8 +6,8 @@ import importlib.machinery
 import sys
 from contextlib import contextmanager
 
-from .patches.dask import patch_dask_attr
-from .patches.distributed import patch_distributed_attr
+from .patches.dask import patches as dask_patches
+from .patches.distributed import patches as distributed_patches
 
 
 class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
@@ -21,9 +21,11 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
 
     def exec_module(self, mod):
         if mod.__name__ == "dask":
-            patch_dask_attr(mod)
+            for patch in dask_patches:
+                patch(mod)
         elif mod.__name__ == "distributed":
-            patch_distributed_attr(mod)
+            for patch in distributed_patches:
+                patch(mod)
 
     @contextmanager
     def disable(self):

@@ -15,21 +15,21 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
         if spec.name in ("dask", "distributed"):
             with self.disable():
                 mod = importlib.import_module(spec.name)
+
             # Note: The spec does not make it clear whether we're guaranteed that spec
             # is not a copy of the original spec, but that is the case for now. We need
             # to assign this because the spec is used to update module attributes after
             # it is initialized by create_module.
             spec.origin = mod.__spec__.origin
             spec.submodule_search_locations = mod.__spec__.submodule_search_locations
+
+            patches = dask_patches if spec.name == "dask" else distributed_patches
+            for patch in patches:
+                patch(mod)
             return mod
 
     def exec_module(self, mod):
-        if mod.__name__ == "dask":
-            for patch in dask_patches:
-                patch(mod)
-        elif mod.__name__ == "distributed":
-            for patch in distributed_patches:
-                patch(mod)
+        pass
 
     @contextmanager
     def disable(self):

@@ -18,7 +18,7 @@ requirements:
     - dask ==2024.1.1
     - dask-core ==2024.1.1
     - distributed ==2024.1.1
-    - dask_expr ==0.4.0
+    - dask-expr ==0.4.0
 
 about:
   home: https://rapids.ai/

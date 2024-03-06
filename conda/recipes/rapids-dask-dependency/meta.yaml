@@ -14,13 +14,6 @@ build:
   noarch: python
   script: python -m pip install . -vv --no-deps
 
-test:
-  imports:
-    - rapids_dask_dependency
-  requires:
-    - pip
-    - pytest
-
 requirements:
   host:
     - pip

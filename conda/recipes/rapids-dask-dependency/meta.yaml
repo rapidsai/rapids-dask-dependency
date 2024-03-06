@@ -12,7 +12,7 @@ source:
 build:
   number: 0
   noarch: python
-  script: python -m pip install . -vv
+  script: python -m pip install . -vv --no-deps
 
 test:
   imports:
@@ -22,6 +22,10 @@ test:
     - pytest
 
 requirements:
+  host:
+    - pip
+    - python >=3.9
+    - setuptools
   run:
     - dask ==2024.1.1
     - dask-core ==2024.1.1

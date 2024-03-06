@@ -31,3 +31,11 @@ At release, these dependencies will be pinned to the desired versions.
 Note that encoding direct URLs as above is technically prohibited by the [Python packaging specifications](https://packaging.python.org/en/latest/specifications/version-specifiers/#direct-references).
 However, while PyPI enforces this, the RAPIDS nightly index does not.
 Therefore, use of this versioning strategy currently prohibits rapids-dask-dependency nightlies from being uploaded to PyPI, and they must be hosted on the RAPIDS nightly pip index.
+
+# Patching
+
+In addition to function as a metapackage, `rapids-dask-dependency` also includes code for patching dask itself.
+This package is never intended to be manually imported by the user.
+Instead, upon installation it installs a `.pth` file (see the [site module documentation](https://docs.python.org/3.11/library/site.html) for how these work) that will be run whenever the Python interpreter starts.
+This file installs a custom [meta path loader](https://docs.python.org/3/reference/import.html#the-meta-path) that intercepts all calls to importing dask modules.
+This loader is set up to apply RAPIDS-specific patches to the modules, ensuring that regardless of import order issues dask modules will always be patched for RAPIDS-compatibility in environments where RAPIDS packages are installed.

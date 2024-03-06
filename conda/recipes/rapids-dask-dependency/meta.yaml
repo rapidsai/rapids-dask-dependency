@@ -11,7 +11,12 @@ source:
 
 build:
   number: 0
-  noarch: generic
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+
+test:
+  imports:
+    - rapids_dask_dependency
 
 requirements:
   run:

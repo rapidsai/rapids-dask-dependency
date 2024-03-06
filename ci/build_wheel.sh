@@ -16,4 +16,4 @@ RAPIDS_PY_WHEEL_NAME="rapids-dask-dependency" rapids-upload-wheels-to-s3 dist
 
 # Run tests
 python -m pip install $(ls dist/*.whl)[test]
-./conda/recipes/rapids-dask-dependency/run_test.sh
+python -m pytest -v tests/

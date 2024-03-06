@@ -12,11 +12,14 @@ source:
 build:
   number: 0
   noarch: python
-  script: {{ PYTHON }} -m pip install . -vv
+  script: python -m pip install . -vv
 
 test:
   imports:
     - rapids_dask_dependency
+  requires:
+    - pip
+    - pytest
 
 requirements:
   run:

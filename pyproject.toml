@@ -19,6 +19,11 @@ dependencies = [
 license = { text = "Apache 2.0" }
 readme = { file = "README.md", content-type = "text/markdown" }
 
+[project.optional-dependencies]
+test = [
+    "pytest",
+]
+
 [tool.setuptools]
 license-files = ["LICENSE"]
 

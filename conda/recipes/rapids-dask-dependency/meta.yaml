@@ -18,6 +18,8 @@ test:
   requires:
     - pip
     - pytest
+  source_files:
+    - tests/
 
 requirements:
   host:

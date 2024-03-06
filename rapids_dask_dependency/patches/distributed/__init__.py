@@ -1,5 +1,5 @@
 # Copyright (c) 2024, NVIDIA CORPORATION.
 
-from .patch_sample import patch_distributed_attr
+from .add_patch_attr import add_patch_attr
 
-patches = [patch_distributed_attr]
+patches = [add_patch_attr]

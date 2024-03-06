@@ -16,11 +16,11 @@ def run_test_in_subprocess(func):
 def test_dask():
     import dask
 
-    assert hasattr(dask, "test_attr")
+    assert hasattr(dask, "_rapids_patched")
 
 
 @run_test_in_subprocess
 def test_distributed():
     import distributed
 
-    assert hasattr(distributed, "test_attr")
+    assert hasattr(distributed, "_rapids_patched")

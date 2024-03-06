@@ -4,16 +4,36 @@ import importlib
 import importlib.abc
 import importlib.machinery
 import sys
+import warnings
 from contextlib import contextmanager
 
 from .patches.dask import patches as dask_patches
 from .patches.distributed import patches as distributed_patches
 
+original_warn = warnings.warn
+
+
+def _warning_with_increased_stacklevel(
+    message, category=None, stacklevel=1, source=None, **kwargs
+):
+    # Patch warnings to have the right stacklevel
+    # Add 3 to the stacklevel to account for the 3 extra frames added by the loader: one
+    # in this warnings function, one in the actual loader, and one in the importlib
+    # call (not including all internal frames).
+    original_warn(message, category, stacklevel + 3, source, **kwargs)
+
+
+@contextmanager
+def patch_warning_stacklevel():
+    warnings.warn = _warning_with_increased_stacklevel
+    yield
+    warnings.warn = original_warn
+
 
 class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
     def create_module(self, spec):
         if spec.name.startswith("dask") or spec.name.startswith("distributed"):
-            with self.disable():
+            with self.disable(), patch_warning_stacklevel():
                 mod = importlib.import_module(spec.name)
 
             # Note: The spec does not make it clear whether we're guaranteed that spec

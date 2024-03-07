@@ -11,10 +11,13 @@ source:
 
 build:
   number: 0
-  noarch: generic
+  noarch: python
 
 requirements:
+  host:
+    - python
   run:
+    - python
     - dask ==2024.1.1
     - dask-core ==2024.1.1
     - distributed ==2024.1.1

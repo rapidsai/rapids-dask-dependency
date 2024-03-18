@@ -15,4 +15,4 @@ sed -i "s/^version = .*/version = \"${version}\"/g" "${package_dir}/pyproject.to
 cd "${package_dir}"
 python -m pip wheel . -w dist -vvv --no-deps --disable-pip-version-check
 
-RAPIDS_PY_WHEEL_NAME="${package_name}" rapids-upload-wheels-to-s3 dist
+RAPIDS_PY_WHEEL_NAME="${package_name}" RAPIDS_PY_WHEEL_PURE="1" rapids-upload-wheels-to-s3 dist

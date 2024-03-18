@@ -12,7 +12,7 @@ sed -i "s/^version = .*/version = \"${version}\"/g" "pyproject.toml"
 
 python -m pip wheel . -w dist -vv --no-deps --disable-pip-version-check
 
-RAPIDS_PY_WHEEL_NAME="rapids-dask-dependency" rapids-upload-wheels-to-s3 dist
+RAPIDS_PY_WHEEL_NAME="rapids-dask-dependency" RAPIDS_PY_WHEEL_PURE="1" rapids-upload-wheels-to-s3 dist
 
 # Run tests
 python -m pip install $(ls dist/*.whl)[test]

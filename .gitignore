@@ -13,3 +13,4 @@ build/
 wheels/
 *.egg-info/
 *.egg
+*.whl

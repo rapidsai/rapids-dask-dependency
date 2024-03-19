@@ -28,10 +28,10 @@ requirements:
     - setuptools
     - conda-verify
   run:
-    - dask ==2024.1.1
-    - dask-core ==2024.1.1
-    - distributed ==2024.1.1
-    - dask-expr ==0.4.0
+    - dask >=2024.1.1
+    - dask-core >=2024.1.1
+    - distributed >=2024.1.1
+    - dask-expr >=0.4.0
 
 about:
   home: https://rapids.ai/

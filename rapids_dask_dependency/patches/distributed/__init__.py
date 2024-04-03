@@ -1,5 +1,9 @@
 # Copyright (c) 2024, NVIDIA CORPORATION.
 
-from .add_patch_attr import add_patch_attr
+import importlib
 
-patches = [add_patch_attr]
+
+def load_module():
+    mod = importlib.import_module("distributed")
+    mod._rapids_patched = True
+    return mod

@@ -7,9 +7,6 @@ import sys
 import warnings
 from contextlib import contextmanager
 
-from .patches.dask import patches as dask_patches
-from .patches.distributed import patches as distributed_patches
-
 original_warn = warnings.warn
 
 
@@ -34,7 +31,13 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
     def create_module(self, spec):
         if spec.name.startswith("dask") or spec.name.startswith("distributed"):
             with self.disable(), patch_warning_stacklevel():
-                mod = importlib.import_module(spec.name)
+                try:
+                    proxy = importlib.import_module(f"rapids_dask_dependency.patches.{spec.name}")
+                    # TODO: The warning filter will no longer work for this one, we'll
+                    # have to increase the stacklevel further.
+                    mod = proxy.load_module()
+                except ModuleNotFoundError:
+                    mod = importlib.import_module(spec.name)
 
             # Note: The spec does not make it clear whether we're guaranteed that spec
             # is not a copy of the original spec, but that is the case for now. We need
@@ -43,11 +46,6 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
             spec.origin = mod.__spec__.origin
             spec.submodule_search_locations = mod.__spec__.submodule_search_locations
 
-            # TODO: I assume we'll want to only apply patches to specific submodules,
-            # that'll be up to RAPIDS dask devs to decide.
-            patches = dask_patches if "dask" in spec.name else distributed_patches
-            for patch in patches:
-                patch(mod)
             return mod
 
     def exec_module(self, _):

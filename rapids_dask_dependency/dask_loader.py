@@ -6,23 +6,24 @@ import importlib.machinery
 import sys
 import warnings
 from contextlib import contextmanager
+from functools import lru_cache
 
 original_warn = warnings.warn
 
 
-def _warning_with_increased_stacklevel(
-    message, category=None, stacklevel=1, source=None, **kwargs
-):
-    # Patch warnings to have the right stacklevel
-    # Add 3 to the stacklevel to account for the 3 extra frames added by the loader: one
-    # in this warnings function, one in the actual loader, and one in the importlib
-    # call (not including all internal frames).
-    original_warn(message, category, stacklevel + 3, source, **kwargs)
+@lru_cache()
+def _make_warning_func(level):
+    def _warning_with_increased_stacklevel(
+        message, category=None, stacklevel=1, source=None, **kwargs
+    ):
+        # Patch warnings to have the right stacklevel
+        original_warn(message, category, stacklevel + level, source, **kwargs)
+    return _warning_with_increased_stacklevel
 
 
 @contextmanager
-def patch_warning_stacklevel():
-    warnings.warn = _warning_with_increased_stacklevel
+def patch_warning_stacklevel(level):
+    warnings.warn = _make_warning_func(level)
     yield
     warnings.warn = original_warn
 
@@ -30,14 +31,19 @@ def patch_warning_stacklevel():
 class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
     def create_module(self, spec):
         if spec.name.startswith("dask") or spec.name.startswith("distributed"):
-            with self.disable(), patch_warning_stacklevel():
+            with self.disable():
                 try:
                     proxy = importlib.import_module(f"rapids_dask_dependency.patches.{spec.name}")
                     # TODO: The warning filter will no longer work for this one, we'll
                     # have to increase the stacklevel further.
                     mod = proxy.load_module()
                 except ModuleNotFoundError:
-                    mod = importlib.import_module(spec.name)
+                    # Add 3 to the stacklevel to account for the 3 extra frames added by
+                    # the loader: one in the produced warnings function, one in the actual
+                    # loader, and one in the importlib call (not including all internal
+                    # frames).
+                    with patch_warning_stacklevel(3):
+                        mod = importlib.import_module(spec.name)
 
             # Note: The spec does not make it clear whether we're guaranteed that spec
             # is not a copy of the original spec, but that is the case for now. We need

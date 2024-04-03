@@ -21,24 +21,25 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
         if spec.name.startswith("dask") or spec.name.startswith("distributed"):
             with self.disable():
                 try:
+                    # Absolute import is important here to avoid shadowing the real dask
+                    # and distributed modules in sys.modules. Bad things will happen if
+                    # we use relative imports here.
                     proxy = importlib.import_module(
                         f"rapids_dask_dependency.patches.{spec.name}"
                     )
-                    # TODO: The warning filter will no longer work for this one, we'll
-                    # have to increase the stacklevel further.
-                    mod = proxy.load_module(spec)
-
+                    if hasattr(proxy, "load_module"):
+                        return proxy.load_module(spec)
                 except ModuleNotFoundError:
-                    # Add 3 to the stacklevel to account for the 3 extra frames added by
-                    # the loader: one in the produced warnings function, one in the
-                    # actual loader, and one in the importlib call (not including all
-                    # internal frames).
-                    with patch_warning_stacklevel(3):
-                        mod = importlib.import_module(spec.name)
+                    pass
 
-                    update_spec(spec, mod)
+                # Three extra stack frames: 1) DaskLoader.create_module,
+                # 2) importlib.import_module, and 3) the patched warnings function (not
+                # including the internal frames, which warnings ignores).
+                with patch_warning_stacklevel(3):
+                    mod = importlib.import_module(spec.name)
 
-            return mod
+                update_spec(spec, mod)
+                return mod
 
     def exec_module(self, _):
         pass

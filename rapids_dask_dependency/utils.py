@@ -22,3 +22,13 @@ def patch_warning_stacklevel(level):
     warnings.warn = _make_warning_func(level)
     yield
     warnings.warn = original_warn
+
+
+# Note: The Python documentation does not make it clear whether we're guaranteed that
+# spec is not a copy of the original spec, but that is the case for now. We need to
+# assign this because the spec is used to update module attributes after it is
+# initialized by create_module.
+def update_spec(spec, mod):
+    spec.origin = mod.__spec__.origin
+    spec.submodule_search_locations = mod.__spec__.submodule_search_locations
+    return spec

@@ -3,13 +3,21 @@
 import importlib
 import importlib.abc
 import importlib.machinery
+import importlib.util
+import os
 import sys
 from contextlib import contextmanager
 
-from rapids_dask_dependency.utils import patch_warning_stacklevel
+from rapids_dask_dependency.utils import patch_warning_stacklevel, update_spec
 
 
 class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
+    def __init__(self):
+        # On creation and before this object is added to the meta path, cache the
+        # location to the real dask if it exists so that we can use it to spoof the
+        # origin of modules that we vendor instead of patching.
+        self.real_dask_spec = importlib.util.find_spec("dask")
+
     def create_module(self, spec):
         if spec.name.startswith("dask") or spec.name.startswith("distributed"):
             with self.disable():
@@ -17,7 +25,8 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
                     proxy = importlib.import_module(f"rapids_dask_dependency.patches.{spec.name}")
                     # TODO: The warning filter will no longer work for this one, we'll
                     # have to increase the stacklevel further.
-                    mod = proxy.load_module()
+                    mod = proxy.load_module(spec)
+
                 except ModuleNotFoundError:
                     # Add 3 to the stacklevel to account for the 3 extra frames added by
                     # the loader: one in the produced warnings function, one in the actual
@@ -26,12 +35,7 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
                     with patch_warning_stacklevel(3):
                         mod = importlib.import_module(spec.name)
 
-            # Note: The spec does not make it clear whether we're guaranteed that spec
-            # is not a copy of the original spec, but that is the case for now. We need
-            # to assign this because the spec is used to update module attributes after
-            # it is initialized by create_module.
-            spec.origin = mod.__spec__.origin
-            spec.submodule_search_locations = mod.__spec__.submodule_search_locations
+                    update_spec(spec, mod)
 
             return mod
 

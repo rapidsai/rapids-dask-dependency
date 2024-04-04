@@ -11,9 +11,12 @@ from rapids_dask_dependency.utils import patch_warning_stacklevel, update_spec
 
 
 class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
+    def __init__(self):
+        self._blocklist = set()
+
     def create_module(self, spec):
         if spec.name.startswith("dask") or spec.name.startswith("distributed"):
-            with self.disable():
+            with self.disable(spec.name):
                 try:
                     # Absolute import is important here to avoid shadowing the real dask
                     # and distributed modules in sys.modules. Bad things will happen if
@@ -39,14 +42,21 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
         pass
 
     @contextmanager
-    def disable(self):
-        sys.meta_path.remove(self)
+    def disable(self, name):
+        # This is a context manager that prevents this finder from intercepting calls to
+        # import a specific name. We must do this to avoid infinite recursion when
+        # calling import_module in create_module. However, we cannot blanket disable the
+        # finder because that causes it to be bypassed when transitive imports occur
+        # within import_module.
         try:
+            self._blocklist.add(name)
             yield
         finally:
-            sys.meta_path.insert(0, self)
+            self._blocklist.remove(name)
 
     def find_spec(self, fullname: str, _, __=None):
+        if fullname in self._blocklist:
+            return None
         if (
             fullname in ("dask", "distributed")
             or fullname.startswith("dask.")

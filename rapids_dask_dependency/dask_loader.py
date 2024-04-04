@@ -35,7 +35,7 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
                 with patch_warning_stacklevel(3):
                     mod = importlib.import_module(spec.name)
 
-                update_spec(spec, mod)
+                update_spec(spec, mod.__spec__)
                 return mod
 
     def exec_module(self, _):

@@ -1,6 +1,7 @@
 # Copyright (c) 2024, NVIDIA CORPORATION.
 
 import importlib
+import importlib.util
 from abc import abstractmethod
 
 from rapids_dask_dependency.utils import patch_warning_stacklevel, update_spec
@@ -26,7 +27,7 @@ class MonkeyPatchImporter(BaseImporter):
         # ignores).
         with patch_warning_stacklevel(4):
             mod = importlib.import_module(self.name)
-        update_spec(spec, mod)
+        update_spec(spec, mod.__spec__)
         mod._rapids_patched = True
         return mod
 
@@ -38,15 +39,18 @@ class VendoredImporter(BaseImporter):
     default_prefix = "__rdd_patch_"
 
     def __init__(self, module):
-        self.real_module = module
+        self.real_module_name = module
         module_parts = module.split(".")
         module_parts[-1] = self.default_prefix + module_parts[-1]
-        self.vendored_module = ".".join(module_parts)
+        self.vendored_module_name = ".".join(module_parts)
 
     def load_module(self, spec):
         vendored_module = importlib.import_module(
-            f"rapids_dask_dependency.patches.{self.vendored_module}"
+            f"rapids_dask_dependency.patches.{self.vendored_module_name}"
         )
-        # TODO: Need a way to get this cleanly when the loader is already installed.
-        # update_spec(spec, mod)
+        # At this stage the module loader must have been disabled for this module, so we
+        # can access the original module. We don't want to actually import it, we just
+        # want enough information on it to update the spec.
+        original_spec = importlib.util.find_spec(self.real_module_name)
+        update_spec(spec, original_spec)
         return vendored_module

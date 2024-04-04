@@ -20,9 +20,10 @@ def _make_warning_func(level):
 
 @contextmanager
 def patch_warning_stacklevel(level):
+    previous_warn = warnings.warn
     warnings.warn = _make_warning_func(level)
     yield
-    warnings.warn = original_warn
+    warnings.warn = previous_warn
 
 
 # Note: The Python documentation does not make it clear whether we're guaranteed that

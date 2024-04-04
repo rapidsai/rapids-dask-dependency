@@ -11,12 +11,6 @@ from rapids_dask_dependency.utils import patch_warning_stacklevel, update_spec
 
 
 class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
-    def __init__(self):
-        # On creation and before this object is added to the meta path, cache the
-        # location to the real dask if it exists so that we can use it to spoof the
-        # origin of modules that we vendor instead of patching.
-        self.real_dask_spec = importlib.util.find_spec("dask")
-
     def create_module(self, spec):
         if spec.name.startswith("dask") or spec.name.startswith("distributed"):
             with self.disable():

@@ -3,65 +3,60 @@
 import importlib
 import importlib.abc
 import importlib.machinery
+import importlib.util
 import sys
-import warnings
 from contextlib import contextmanager
 
-from .patches.dask import patches as dask_patches
-from .patches.distributed import patches as distributed_patches
-
-original_warn = warnings.warn
-
-
-def _warning_with_increased_stacklevel(
-    message, category=None, stacklevel=1, source=None, **kwargs
-):
-    # Patch warnings to have the right stacklevel
-    # Add 3 to the stacklevel to account for the 3 extra frames added by the loader: one
-    # in this warnings function, one in the actual loader, and one in the importlib
-    # call (not including all internal frames).
-    original_warn(message, category, stacklevel + 3, source, **kwargs)
-
-
-@contextmanager
-def patch_warning_stacklevel():
-    warnings.warn = _warning_with_increased_stacklevel
-    yield
-    warnings.warn = original_warn
+from rapids_dask_dependency.utils import patch_warning_stacklevel, update_spec
 
 
 class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
+    def __init__(self):
+        self._blocklist = set()
+
     def create_module(self, spec):
         if spec.name.startswith("dask") or spec.name.startswith("distributed"):
-            with self.disable(), patch_warning_stacklevel():
-                mod = importlib.import_module(spec.name)
+            with self.disable(spec.name):
+                try:
+                    # Absolute import is important here to avoid shadowing the real dask
+                    # and distributed modules in sys.modules. Bad things will happen if
+                    # we use relative imports here.
+                    proxy = importlib.import_module(
+                        f"rapids_dask_dependency.patches.{spec.name}"
+                    )
+                    if hasattr(proxy, "load_module"):
+                        return proxy.load_module(spec)
+                except ModuleNotFoundError:
+                    pass
 
-            # Note: The spec does not make it clear whether we're guaranteed that spec
-            # is not a copy of the original spec, but that is the case for now. We need
-            # to assign this because the spec is used to update module attributes after
-            # it is initialized by create_module.
-            spec.origin = mod.__spec__.origin
-            spec.submodule_search_locations = mod.__spec__.submodule_search_locations
+                # Three extra stack frames: 1) DaskLoader.create_module,
+                # 2) importlib.import_module, and 3) the patched warnings function (not
+                # including the internal frames, which warnings ignores).
+                with patch_warning_stacklevel(3):
+                    mod = importlib.import_module(spec.name)
 
-            # TODO: I assume we'll want to only apply patches to specific submodules,
-            # that'll be up to RAPIDS dask devs to decide.
-            patches = dask_patches if "dask" in spec.name else distributed_patches
-            for patch in patches:
-                patch(mod)
-            return mod
+                update_spec(spec, mod.__spec__)
+                return mod
 
     def exec_module(self, _):
         pass
 
     @contextmanager
-    def disable(self):
-        sys.meta_path.remove(self)
+    def disable(self, name):
+        # This is a context manager that prevents this finder from intercepting calls to
+        # import a specific name. We must do this to avoid infinite recursion when
+        # calling import_module in create_module. However, we cannot blanket disable the
+        # finder because that causes it to be bypassed when transitive imports occur
+        # within import_module.
         try:
+            self._blocklist.add(name)
             yield
         finally:
-            sys.meta_path.insert(0, self)
+            self._blocklist.remove(name)
 
     def find_spec(self, fullname: str, _, __=None):
+        if fullname in self._blocklist:
+            return None
         if (
             fullname in ("dask", "distributed")
             or fullname.startswith("dask.")

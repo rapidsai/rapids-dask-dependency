@@ -1,5 +1,8 @@
 # Copyright (c) 2024, NVIDIA CORPORATION.
 
+# Always exclude vendored files from linting
+exclude: ".*__rdd_patch_.*"
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0

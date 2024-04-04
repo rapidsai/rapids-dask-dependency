@@ -2,5 +2,5 @@
 
 from rapids_dask_dependency.importer import MonkeyPatchImporter
 
-_importer = MonkeyPatchImporter("distributed")
+_importer = MonkeyPatchImporter(__name__, lambda _: None)
 load_module = _importer.load_module

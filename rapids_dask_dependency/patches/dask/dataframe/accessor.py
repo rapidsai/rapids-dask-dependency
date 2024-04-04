@@ -2,6 +2,5 @@
 
 from rapids_dask_dependency.importer import VendoredImporter
 
-# TODO: Try to infer the name from the location of the file.
-_importer = VendoredImporter("dask.dataframe.accessor")
+_importer = VendoredImporter(__name__)
 load_module = _importer.load_module

@@ -11,13 +11,27 @@ source:
 
 build:
   number: 0
-  noarch: generic
+  noarch: python
+  script: python -m pip install . -vv --no-deps
+
+test:
+  requires:
+    - pip
+    - pytest
+  source_files:
+    - tests/
 
 requirements:
+  host:
+    - pip
+    - python >=3.9
+    - setuptools
+    - conda-verify
   run:
     - dask ==2024.1.1
     - dask-core ==2024.1.1
     - distributed ==2024.1.1
+    - dask-expr ==0.4.0
 
 about:
   home: https://rapids.ai/
@@ -28,7 +42,7 @@ about:
     This metapackage encodes the standard Dask version pinning used for a
     particular release of RAPIDS. The metapackage adds an extra release segment
     to the RAPIDS CalVer to allow pinnings in this metapackage to be updated
-    for a given release and automatically propagate to its dependents.
+    for a given release and automatically propagate to its dependents. It also
+    includes any patches to dask required for RAPIDS to function correctly.
   doc_url: https://docs.rapids.ai/
   dev_url: https://github.com/rapidsai/rapids_dask_dependency
-

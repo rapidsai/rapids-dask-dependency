@@ -5,6 +5,9 @@ import importlib.util
 
 from rapids_dask_dependency.utils import patch_warning_stacklevel
 
+# Vendored files use a standard prefix to avoid name collisions.
+DEFAULT_VENDORED_PREFIX = "__rdd_patch_"
+
 
 def make_monkey_patch_loader(name, patch_func):
     """Create a loader for monkey-patched modules."""
@@ -23,10 +26,6 @@ def make_monkey_patch_loader(name, patch_func):
         return mod
 
     return load_module
-
-
-# Vendored files use a standard prefix to avoid name collisions.
-DEFAULT_VENDORED_PREFIX = "__rdd_patch_"
 
 
 def make_vendored_loader(name):

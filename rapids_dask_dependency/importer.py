@@ -42,6 +42,6 @@ def make_vendored_loader(name):
     def load_module():
         parts = name.split(".")
         parts[-1] = DEFAULT_VENDORED_PREFIX + parts[-1]
-        return importlib.import_name(".".join(parts))
+        return importlib.import_module(".".join(parts))
 
     return load_module

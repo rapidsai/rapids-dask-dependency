@@ -2,15 +2,8 @@
 
 import importlib
 import importlib.util
-from abc import abstractmethod
 
 from rapids_dask_dependency.utils import patch_warning_stacklevel
-
-
-class BaseImporter:
-    @abstractmethod
-    def load_module(self):
-        pass
 
 
 def make_monkey_patch_loader(name, patch_func):

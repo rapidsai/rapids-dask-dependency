@@ -24,13 +24,3 @@ def patch_warning_stacklevel(level):
     warnings.warn = _make_warning_func(level)
     yield
     warnings.warn = previous_warn
-
-
-# Note: The Python documentation does not make it clear whether we're guaranteed that
-# spec is not a copy of the original spec, but that is the case for now. We need to
-# assign this because the spec is used to update module attributes after it is
-# initialized by create_module.
-def update_spec(spec, original_spec):
-    spec.origin = original_spec.origin
-    spec.submodule_search_locations = original_spec.submodule_search_locations
-    return spec

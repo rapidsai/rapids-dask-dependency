@@ -4,6 +4,8 @@ import tempfile
 from functools import wraps
 from multiprocessing import Process
 
+import pytest
+
 
 def run_test_in_subprocess(func):
     def redirect_stdout_stderr(func, stdout, stderr, *args, **kwargs):
@@ -50,6 +52,23 @@ def test_distributed():
     import distributed
 
     assert hasattr(distributed, "_rapids_patched")
+
+
+@pytest.mark.parametrize("python_version", [(3, 11, 9), (3, 11, 8)])
+@run_test_in_subprocess
+def test_dask_accessor(python_version):
+    import sys
+
+    import dask
+
+    # Simulate the version of Python and Dask needed to trigger vendoring of the
+    # accessor module.
+    sys.version_info = python_version
+    dask.__version__ = "2023.4.1"
+
+    from dask.dataframe import accessor
+
+    assert (hasattr(accessor, "_rapids_patched")) == (python_version >= (3, 11, 9))
 
 
 def test_dask_cli():

@@ -1,4 +1,5 @@
 import contextlib
+import subprocess
 import tempfile
 from functools import wraps
 from multiprocessing import Process
@@ -49,3 +50,23 @@ def test_distributed():
     import distributed
 
     assert hasattr(distributed, "_rapids_patched")
+
+
+def test_dask_cli():
+    try:
+        subprocess.run(["dask", "--help"], capture_output=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print(e.stdout.decode())
+        print(e.stderr.decode())
+        raise
+
+
+def test_dask_as_module():
+    try:
+        subprocess.run(
+            ["python", "-m", "dask", "--help"], capture_output=True, check=True
+        )
+    except subprocess.CalledProcessError as e:
+        print(e.stdout.decode())
+        print(e.stderr.decode())
+        raise

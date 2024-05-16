@@ -1,5 +1,5 @@
 # Copyright (c) 2024, NVIDIA CORPORATION.
 
-from .dask_loader import DaskLoader
+from .dask_loader import DaskFinder
 
-DaskLoader.install()
+DaskFinder.install()

@@ -7,16 +7,17 @@ import importlib.util
 import sys
 from contextlib import contextmanager
 
-from rapids_dask_dependency.utils import patch_warning_stacklevel, update_spec
+from rapids_dask_dependency.utils import patch_warning_stacklevel
 
 
-class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
-    def __init__(self):
-        self._blocklist = set()
+class DaskLoader(importlib.machinery.SourceFileLoader):
+    def __init__(self, fullname, path, finder):
+        super().__init__(fullname, path)
+        self._finder = finder
 
     def create_module(self, spec):
         if spec.name.startswith("dask") or spec.name.startswith("distributed"):
-            with self.disable(spec.name):
+            with self._finder.disable(spec.name):
                 try:
                     # Absolute import is important here to avoid shadowing the real dask
                     # and distributed modules in sys.modules. Bad things will happen if
@@ -35,11 +36,15 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
                 with patch_warning_stacklevel(3):
                     mod = importlib.import_module(spec.name)
 
-                update_spec(spec, mod.__spec__)
                 return mod
 
     def exec_module(self, _):
         pass
+
+
+class DaskFinder(importlib.abc.MetaPathFinder):
+    def __init__(self):
+        self._blocklist = set()
 
     @contextmanager
     def disable(self, name):
@@ -62,14 +67,19 @@ class DaskLoader(importlib.abc.MetaPathFinder, importlib.abc.Loader):
             or fullname.startswith("dask.")
             or fullname.startswith("distributed.")
         ):
-            return importlib.machinery.ModuleSpec(
+            with self.disable(fullname):
+                real_spec = importlib.util.find_spec(fullname)
+            if real_spec is None:
+                return None
+            spec = importlib.machinery.ModuleSpec(
                 name=fullname,
-                loader=self,
-                # Set these parameters dynamically in create_module
-                origin=None,
-                loader_state=None,
-                is_package=True,
+                loader=DaskLoader(fullname, real_spec.origin, self),
+                origin=real_spec.origin,
+                loader_state=real_spec.loader_state,
+                is_package=real_spec.submodule_search_locations is not None,
             )
+            spec.submodule_search_locations = real_spec.submodule_search_locations
+            return spec
         return None
 
     @classmethod

@@ -16,27 +16,26 @@ class DaskLoader(importlib.machinery.SourceFileLoader):
         self._finder = finder
 
     def create_module(self, spec):
-        if spec.name.startswith("dask") or spec.name.startswith("distributed"):
-            with self._finder.disable(spec.name):
-                try:
-                    # Absolute import is important here to avoid shadowing the real dask
-                    # and distributed modules in sys.modules. Bad things will happen if
-                    # we use relative imports here.
-                    proxy = importlib.import_module(
-                        f"rapids_dask_dependency.patches.{spec.name}"
-                    )
-                    if hasattr(proxy, "load_module"):
-                        return proxy.load_module(spec)
-                except ModuleNotFoundError:
-                    pass
+        with self._finder.disable(spec.name):
+            try:
+                # Absolute import is important here to avoid shadowing the real dask
+                # and distributed modules in sys.modules. Bad things will happen if
+                # we use relative imports here.
+                proxy = importlib.import_module(
+                    f"rapids_dask_dependency.patches.{spec.name}"
+                )
+                if hasattr(proxy, "load_module"):
+                    return proxy.load_module(spec)
+            except ModuleNotFoundError:
+                pass
 
-                # Three extra stack frames: 1) DaskLoader.create_module,
-                # 2) importlib.import_module, and 3) the patched warnings function (not
-                # including the internal frames, which warnings ignores).
-                with patch_warning_stacklevel(3):
-                    mod = importlib.import_module(spec.name)
+            # Three extra stack frames: 1) DaskLoader.create_module,
+            # 2) importlib.import_module, and 3) the patched warnings function (not
+            # including the internal frames, which warnings ignores).
+            with patch_warning_stacklevel(3):
+                mod = importlib.import_module(spec.name)
 
-                return mod
+            return mod
 
     def exec_module(self, _):
         pass

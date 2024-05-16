@@ -7,6 +7,6 @@ if sys.version_info >= (3, 11, 9):
     from packaging.version import Version
 
     if Version(__version__) < Version("2024.4.1"):
-        from rapids_dask_dependency.importer import make_vendored_loader
+        from rapids_dask_dependency.loaders import make_vendored_loader
 
         load_module = make_vendored_loader(__name__)

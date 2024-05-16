@@ -25,7 +25,7 @@ class DaskLoader(importlib.machinery.SourceFileLoader):
                     f"rapids_dask_dependency.patches.{spec.name}"
                 )
                 if hasattr(proxy, "load_module"):
-                    return proxy.load_module(spec)
+                    return proxy.load_module()
             except ModuleNotFoundError:
                 pass
 

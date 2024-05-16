@@ -9,7 +9,7 @@ from rapids_dask_dependency.utils import patch_warning_stacklevel
 
 class BaseImporter:
     @abstractmethod
-    def load_module(self, spec):
+    def load_module(self):
         pass
 
 
@@ -20,7 +20,7 @@ class MonkeyPatchImporter(BaseImporter):
         self.name = name.replace("rapids_dask_dependency.patches.", "")
         self.patch_func = patch_func
 
-    def load_module(self, spec):
+    def load_module(self):
         # Four extra stack frames: 1) DaskLoader.create_module, 2)
         # MonkeyPatchImporter.load_module, 3) importlib.import_module, and 4) the
         # patched warnings function (not including the internal frames, which warnings
@@ -44,5 +44,5 @@ class VendoredImporter(BaseImporter):
         module_parts[-1] = self.default_prefix + module_parts[-1]
         self.vendored_module_name = ".".join(module_parts)
 
-    def load_module(self, spec):
+    def load_module(self):
         return importlib.import_module(self.vendored_module_name)

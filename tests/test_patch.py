@@ -68,7 +68,7 @@ def test_dask_accessor(python_version):
 
     from dask.dataframe import accessor
 
-    assert (hasattr(accessor, "_rapids_patched")) == (python_version >= (3, 11, 9))
+    assert (hasattr(accessor, "_rapids_vendored")) == (python_version >= (3, 11, 9))
 
 
 def test_dask_cli():

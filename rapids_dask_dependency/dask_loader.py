@@ -33,9 +33,7 @@ class DaskLoader(importlib.machinery.SourceFileLoader):
             # 2) importlib.import_module, and 3) the patched warnings function (not
             # including the internal frames, which warnings ignores).
             with patch_warning_stacklevel(3):
-                mod = importlib.import_module(spec.name)
-
-            return mod
+                return importlib.import_module(spec.name)
 
     def exec_module(self, _):
         pass
@@ -61,15 +59,10 @@ class DaskFinder(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname: str, _, __=None):
         if fullname in self._blocklist:
             return None
-        if (
-            fullname in ("dask", "distributed")
-            or fullname.startswith("dask.")
-            or fullname.startswith("distributed.")
-        ):
+        if fullname.startswith("dask") or fullname.startswith("distributed"):
             with self.disable(fullname):
-                real_spec = importlib.util.find_spec(fullname)
-            if real_spec is None:
-                return None
+                if (real_spec := importlib.util.find_spec(fullname)) is None:
+                    return None
             spec = importlib.machinery.ModuleSpec(
                 name=fullname,
                 loader=DaskLoader(fullname, real_spec.origin, self),

@@ -89,3 +89,16 @@ def test_dask_as_module():
         print(e.stdout.decode())
         print(e.stderr.decode())
         raise
+
+
+def test_distributed_cli_dask_spec_as_module():
+    try:
+        subprocess.run(
+            ["python", "-m", "distributed.cli.dask_spec", "--help"],
+            capture_output=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        print(e.stdout.decode())
+        print(e.stderr.decode())
+        raise

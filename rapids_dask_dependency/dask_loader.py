@@ -59,7 +59,11 @@ class DaskFinder(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname: str, _, __=None):
         if fullname in self._blocklist:
             return None
-        if fullname.startswith("dask") or fullname.startswith("distributed"):
+        if (
+            fullname in ("dask", "distributed")
+            or fullname.startswith("dask.")
+            or fullname.startswith("distributed.")
+        ):
             with self.disable(fullname):
                 if (real_spec := importlib.util.find_spec(fullname)) is None:
                     return None

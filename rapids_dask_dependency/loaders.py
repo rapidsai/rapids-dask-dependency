@@ -14,9 +14,7 @@ def make_monkey_patch_loader(name, patch_func):
 
     def load_module():
         # Four extra stack frames: 1) DaskLoader.create_module, 2)
-        # MonkeyPatchImporter.load_module, 3) importlib.import_module, and 4) the
-        # patched warnings function (not including the internal frames, which warnings
-        # ignores).
+        # load_module, 3) importlib.import_module, and 4) the patched warnings function.
         with patch_warning_stacklevel(4):
             mod = importlib.import_module(
                 name.replace("rapids_dask_dependency.patches.", "")

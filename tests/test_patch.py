@@ -1,7 +1,10 @@
 import contextlib
+import subprocess
 import tempfile
 from functools import wraps
 from multiprocessing import Process
+
+import pytest
 
 
 def run_test_in_subprocess(func):
@@ -49,3 +52,53 @@ def test_distributed():
     import distributed
 
     assert hasattr(distributed, "_rapids_patched")
+
+
+@pytest.mark.parametrize("python_version", [(3, 11, 9), (3, 11, 8)])
+@run_test_in_subprocess
+def test_dask_accessor(python_version):
+    import sys
+
+    import dask
+
+    # Simulate the version of Python and Dask needed to trigger vendoring of the
+    # accessor module.
+    sys.version_info = python_version
+    dask.__version__ = "2023.4.1"
+
+    from dask.dataframe import accessor
+
+    assert (hasattr(accessor, "_rapids_vendored")) == (python_version >= (3, 11, 9))
+
+
+def test_dask_cli():
+    try:
+        subprocess.run(["dask", "--help"], capture_output=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print(e.stdout.decode())
+        print(e.stderr.decode())
+        raise
+
+
+def test_dask_as_module():
+    try:
+        subprocess.run(
+            ["python", "-m", "dask", "--help"], capture_output=True, check=True
+        )
+    except subprocess.CalledProcessError as e:
+        print(e.stdout.decode())
+        print(e.stderr.decode())
+        raise
+
+
+def test_distributed_cli_dask_spec_as_module():
+    try:
+        subprocess.run(
+            ["python", "-m", "distributed.cli.dask_spec", "--help"],
+            capture_output=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        print(e.stdout.decode())
+        print(e.stderr.decode())
+        raise

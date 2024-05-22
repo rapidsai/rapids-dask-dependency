@@ -12,9 +12,9 @@ name = "rapids-dask-dependency"
 version = "24.06.00a0"
 description = "Dask and Distributed version pinning for RAPIDS"
 dependencies = [
-    "dask @ git+https://github.com/dask/dask.git@main",
-    "distributed @ git+https://github.com/dask/distributed.git@main",
-    "dask-expr @ git+https://github.com/dask/dask-expr.git@main",
+    "dask==2024.5.1",
+    "distributed==2024.5.1",
+    "dask-expr",
 ]
 license = { text = "Apache 2.0" }
 readme = { file = "README.md", content-type = "text/markdown" }

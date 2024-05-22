@@ -102,3 +102,15 @@ def test_distributed_cli_dask_spec_as_module():
         print(e.stdout.decode())
         print(e.stderr.decode())
         raise
+
+
+@run_test_in_subprocess
+def test_dask_patching_disabled():
+    from rapids_dask_dependency.utils import patching_context
+
+    with patching_context(enabled=False):
+        import dask
+        import distributed
+
+        assert not hasattr(dask, "_rapids_patched")
+        assert not hasattr(distributed, "_rapids_patched")

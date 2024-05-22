@@ -7,7 +7,7 @@ import importlib.util
 import sys
 from contextlib import contextmanager
 
-from rapids_dask_dependency.utils import patch_warning_stacklevel
+from rapids_dask_dependency.utils import _patching_enabled, patch_warning_stacklevel
 
 
 class DaskLoader(importlib.machinery.SourceFileLoader):
@@ -58,6 +58,8 @@ class DaskFinder(importlib.abc.MetaPathFinder):
 
     def find_spec(self, fullname: str, _, __=None):
         if fullname in self._blocklist:
+            return None
+        if not _patching_enabled():
             return None
         if (
             fullname in ("dask", "distributed")

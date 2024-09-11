@@ -30,6 +30,19 @@ license-files = ["LICENSE"]
 [tool.setuptools.packages.find]
 include = ["rapids_dask_dependency*"]
 
-[tool.ruff]
-lint.select = ["E", "F", "W", "I", "N", "UP"]
-lint.fixable = ["ALL"]
+[tool.ruff.lint]
+select = [
+    # pycodestyle (errors)
+    "E",
+    # isort
+    "I",
+    # pyflakes
+    "F",
+    # pep8-naming
+    "N",
+    # pyupgrade
+    "UP",
+    # pycodestyle (warnings)
+    "W",
+]
+fixable = ["ALL"]

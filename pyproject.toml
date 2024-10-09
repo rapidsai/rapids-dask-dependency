@@ -9,12 +9,12 @@ requires = [
 
 [project]
 name = "rapids-dask-dependency"
-version = "24.08.00a0"
+version = "24.10.00a0"
 description = "Dask and Distributed version pinning for RAPIDS"
 dependencies = [
-    "dask==2024.7.1",
-    "distributed==2024.7.1",
-    "dask-expr",
+    "dask==2024.9.0",
+    "distributed==2024.9.0",
+    "dask-expr==1.1.14",
 ]
 license = { text = "Apache 2.0" }
 readme = { file = "README.md", content-type = "text/markdown" }
@@ -30,6 +30,19 @@ license-files = ["LICENSE"]
 [tool.setuptools.packages.find]
 include = ["rapids_dask_dependency*"]
 
-[tool.ruff]
-lint.select = ["E", "F", "W", "I", "N", "UP"]
-lint.fixable = ["ALL"]
+[tool.ruff.lint]
+select = [
+    # pycodestyle (errors)
+    "E",
+    # isort
+    "I",
+    # pyflakes
+    "F",
+    # pep8-naming
+    "N",
+    # pyupgrade
+    "UP",
+    # pycodestyle (warnings)
+    "W",
+]
+fixable = ["ALL"]

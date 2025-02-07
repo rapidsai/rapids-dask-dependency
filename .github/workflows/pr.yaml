@@ -14,10 +14,23 @@ jobs:
     needs:
       - conda-python-build
       - wheel-build
+      - telemetry-setup
     secrets: inherit
     uses: rapidsai/shared-workflows/.github/workflows/pr-builder.yaml@branch-25.04
+  telemetry-setup:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      OTEL_SERVICE_NAME: "pr-rapids-dask-dependency"
+    steps:
+      - name: Telemetry setup
+        # This gate is here and not at the job level because we need the job to not be skipped,
+        # since other jobs depend on it.
+        if: ${{ vars.TELEMETRY_ENABLED == 'true' }}
+        uses: rapidsai/shared-actions/telemetry-dispatch-stash-base-env-vars@main
   conda-python-build:
     secrets: inherit
+    needs: telemetry-setup
     uses: rapidsai/shared-workflows/.github/workflows/conda-python-build.yaml@branch-25.04
     with:
       build_type: pull-request
@@ -26,6 +39,7 @@ jobs:
       matrix_filter: map(select(.ARCH == "amd64")) | max_by([(.PY_VER|split(".")|map(tonumber)), (.CUDA_VER|split(".")|map(tonumber))]) | [.]
   wheel-build:
     secrets: inherit
+    needs: telemetry-setup
     uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@branch-25.04
     with:
       build_type: pull-request
@@ -33,3 +47,12 @@ jobs:
       # This selects "ARCH=amd64 + the latest supported Python + CUDA".
       matrix_filter: map(select(.ARCH == "amd64")) | max_by([(.PY_VER|split(".")|map(tonumber)), (.CUDA_VER|split(".")|map(tonumber))]) | [.]
       script: "ci/build_wheel.sh"
+  telemetry-summarize:
+    # This job must use a self-hosted runner to record telemetry traces.
+    runs-on: linux-amd64-cpu4
+    needs: pr-builder
+    if: ${{ vars.TELEMETRY_ENABLED == 'true' && !cancelled() }}
+    continue-on-error: true
+    steps:
+      - name: Telemetry summarize
+        uses: rapidsai/shared-actions/telemetry-dispatch-summarize@main

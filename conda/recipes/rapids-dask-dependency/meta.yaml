@@ -26,7 +26,6 @@ requirements:
     - pip
     - python >=3.9
     - setuptools
-    - conda-verify
   run:
     - dask >=2025.1.0
     - dask-core >=2025.1.0

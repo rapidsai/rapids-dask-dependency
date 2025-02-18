@@ -1,3 +1,5 @@
+# Copyright (c) 2024-2025, NVIDIA CORPORATION.
+
 import contextlib
 import subprocess
 import tempfile
@@ -8,16 +10,18 @@ from multiprocessing import Process
 def run_test_in_subprocess(func):
     def redirect_stdout_stderr(func, stdout, stderr, *args, **kwargs):
         with open(stdout, "w") as stdout_file, open(stderr, "w") as stderr_file:
-            with contextlib.redirect_stdout(stdout_file), contextlib.redirect_stderr(
-                stderr_file
+            with (
+                contextlib.redirect_stdout(stdout_file),
+                contextlib.redirect_stderr(stderr_file),
             ):
                 func(*args, **kwargs)
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        with tempfile.NamedTemporaryFile(
-            mode="w+"
-        ) as stdout, tempfile.NamedTemporaryFile(mode="w+") as stderr:
+        with (
+            tempfile.NamedTemporaryFile(mode="w+") as stdout,
+            tempfile.NamedTemporaryFile(mode="w+") as stderr,
+        ):
             p = Process(
                 target=redirect_stdout_stderr,
                 args=(func, stdout.name, stderr.name, *args),

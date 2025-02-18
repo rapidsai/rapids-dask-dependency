@@ -12,6 +12,7 @@ concurrency:
 jobs:
   pr-builder:
     needs:
+      - checks
       - conda-python-build
       - wheel-build
       - telemetry-setup
@@ -28,6 +29,14 @@ jobs:
         # since other jobs depend on it.
         if: ${{ vars.TELEMETRY_ENABLED == 'true' }}
         uses: rapidsai/shared-actions/telemetry-dispatch-stash-base-env-vars@main
+  checks:
+    runs-on: ubuntu-latest
+    needs: telemetry-setup
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: pre-commit/action@v3.0.1
   conda-python-build:
     secrets: inherit
     needs: telemetry-setup

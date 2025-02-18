@@ -5,20 +5,24 @@ exclude: ".*__rdd_patch_.*"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: v2.4.1
     hooks:
       - id: codespell
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.4
+    rev: v0.9.6
     hooks:
       - id: ruff
         args: ["--fix"]
       - id: ruff-format
+  - repo: https://github.com/rapidsai/pre-commit-hooks
+    rev: v0.6.0
+    hooks:
+      - id: verify-copyright
 
 default_language_version:
       python: python3

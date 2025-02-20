@@ -27,9 +27,9 @@ requirements:
     - python >=3.9
     - setuptools
   run:
-    - dask >=2025.1.0
-    - dask-core >=2025.1.0
-    - distributed >=2025.1.0
+    - dask ==2025.2.0
+    - dask-core ==2025.2.0
+    - distributed ==2025.2.0
 
 about:
   home: https://rapids.ai/

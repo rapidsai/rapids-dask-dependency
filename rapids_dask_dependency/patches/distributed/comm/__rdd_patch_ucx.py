@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import functools
 import logging
+import operator
 import os
 import struct
 import weakref
@@ -30,7 +31,7 @@ from distributed.diagnostics.nvml import (
     has_cuda_context,
 )
 from distributed.protocol.utils import host_array
-from distributed.utils import ensure_ip, get_ip, get_ipv6, log_errors, nbytes
+from distributed.utils import ensure_ip, get_ip, get_ipv6, log_errors, nbytes as _nbytes
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,31 @@ else:
 device_array = None
 pre_existing_cuda_context = False
 cuda_context_created = False
+
+
+def nbytes(f):
+    try:
+        return _nbytes(f)
+    except TypeError as e:
+        if hasattr(f, "__cuda_array_interface__"):
+            interface = f.__cuda_array_interface__
+            shape = interface["shape"]
+            typestr = interface["typestr"]
+            strides = interface.get("strides")
+
+            # Get element size from typestr, format is two character specifying
+            # the type and the latter part is the number of bytes. E.g., '<f4' for
+            # 32-bit (4-byte) float.
+            element_size = int(typestr[2:])
+
+            if strides is not None:
+                raise NotImplementedError("Support for strides is not implemented")
+            else:
+                num_elements = functools.reduce(operator.mul, shape)
+
+            return num_elements * element_size
+        else:
+            raise e
 
 
 _warning_suffix = (

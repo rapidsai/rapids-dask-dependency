@@ -14,7 +14,7 @@ rapids-print-env
 rapids-logger "Begin py build"
 
 version=$(rapids-generate-version)
-RAPIDS_PACKAGE_VERSION=${version} rapids-conda-retry mambabuild \
+RAPIDS_PACKAGE_VERSION=${version} rapids-conda-retry build \
   conda/recipes/rapids-dask-dependency
 
 rapids-upload-conda-to-s3 python

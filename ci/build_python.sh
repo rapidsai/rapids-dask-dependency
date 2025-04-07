@@ -3,18 +3,30 @@
 
 set -euo pipefail
 
-rapids-configure-conda-channels
-
 source rapids-configure-sccache
 
 source rapids-date-string
 
 rapids-print-env
 
-rapids-logger "Begin py build"
+rapids-generate-version > ./VERSION
+RAPIDS_PACKAGE_VERSION=$(head -1 ./VERSION)
+export RAPIDS_PACKAGE_VERSION
 
-version=$(rapids-generate-version)
-RAPIDS_PACKAGE_VERSION=${version} rapids-conda-retry build \
-  conda/recipes/rapids-dask-dependency
+# populates `RATTLER_CHANNELS` array
+source rapids-rattler-channel-string
+
+rapids-logger "Building rapids-dask-dependency"
+
+# Need `--experimental` flag to use `load_from_file` and `git.head_rev`
+rattler-build build --recipe conda/recipes/rapids-dask-dependency \
+                    --experimental \
+                    --channel-priority disabled \
+                    --output-dir "$RAPIDS_CONDA_BLD_OUTPUT_DIR" \
+                    "${RATTLER_CHANNELS[@]}"
+
+# remove build_cache directory to avoid uploading the entire source tree
+# tracked in https://github.com/prefix-dev/rattler-build/issues/1424
+rm -rf "$RAPIDS_CONDA_BLD_OUTPUT_DIR"/build_cache
 
 rapids-upload-conda-to-s3 python

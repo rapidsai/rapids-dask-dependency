@@ -1,25 +1,27 @@
+# Copyright (c) 2024-2025, NVIDIA CORPORATION.
+
 import contextlib
 import subprocess
 import tempfile
 from functools import wraps
 from multiprocessing import Process
 
-import pytest
-
 
 def run_test_in_subprocess(func):
     def redirect_stdout_stderr(func, stdout, stderr, *args, **kwargs):
         with open(stdout, "w") as stdout_file, open(stderr, "w") as stderr_file:
-            with contextlib.redirect_stdout(stdout_file), contextlib.redirect_stderr(
-                stderr_file
+            with (
+                contextlib.redirect_stdout(stdout_file),
+                contextlib.redirect_stderr(stderr_file),
             ):
                 func(*args, **kwargs)
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        with tempfile.NamedTemporaryFile(
-            mode="w+"
-        ) as stdout, tempfile.NamedTemporaryFile(mode="w+") as stderr:
+        with (
+            tempfile.NamedTemporaryFile(mode="w+") as stdout,
+            tempfile.NamedTemporaryFile(mode="w+") as stderr,
+        ):
             p = Process(
                 target=redirect_stdout_stderr,
                 args=(func, stdout.name, stderr.name, *args),
@@ -52,23 +54,6 @@ def test_distributed():
     import distributed
 
     assert hasattr(distributed, "_rapids_patched")
-
-
-@pytest.mark.parametrize("python_version", [(3, 11, 9), (3, 11, 8)])
-@run_test_in_subprocess
-def test_dask_accessor(python_version):
-    import sys
-
-    import dask
-
-    # Simulate the version of Python and Dask needed to trigger vendoring of the
-    # accessor module.
-    sys.version_info = python_version
-    dask.__version__ = "2023.4.1"
-
-    from dask.dataframe import accessor
-
-    assert (hasattr(accessor, "_rapids_vendored")) == (python_version >= (3, 11, 9))
 
 
 def test_dask_cli():

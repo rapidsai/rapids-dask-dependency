@@ -56,7 +56,7 @@ class DaskFinder(importlib.abc.MetaPathFinder):
         finally:
             self._blocklist.remove(name)
 
-    def find_spec(self, fullname: str, _, __=None):
+    def find_spec(self, fullname: str, path, target=None):
         if fullname in self._blocklist:
             return None
         if (

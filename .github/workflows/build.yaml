@@ -58,7 +58,7 @@ jobs:
       # Package is pure Python and only ever requires one build.
       # This selects "ARCH=amd64 + the latest supported Python + CUDA".
       matrix_filter: map(select(.ARCH == "amd64")) | max_by([(.PY_VER|split(".")|map(tonumber)), (.CUDA_VER|split(".")|map(tonumber))]) | [.]
-      wheel-name: rapids-dask-dependency
+      package-name: rapids-dask-dependency
       package-type: python
       pure-wheel: true
       append-cuda-suffix: false
@@ -72,3 +72,4 @@ jobs:
       sha: ${{ inputs.sha }}
       date: ${{ inputs.date }}
       package-name: rapids-dask-dependency
+      package-type: python

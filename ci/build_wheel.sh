@@ -5,6 +5,7 @@ set -euo pipefail
 
 source rapids-configure-sccache
 source rapids-date-string
+source rapids-init-pip
 
 version=$(rapids-generate-version)
 

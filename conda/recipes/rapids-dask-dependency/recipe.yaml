@@ -28,6 +28,9 @@ requirements:
     - dask ==2025.5.0
     - dask-core ==2025.5.0
     - distributed ==2025.5.0
+    # conda-forge has a bad build of importlib-metadata 8.7. Pinning to earlier for now
+    # to unblock CI, will revert once upstream is fixed.
+    - importlib-metadata <8.7
 
 tests:
   - script:

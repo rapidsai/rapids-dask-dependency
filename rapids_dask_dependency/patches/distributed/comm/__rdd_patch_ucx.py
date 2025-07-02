@@ -562,7 +562,6 @@ class UCXBackend(Backend):
         return UCXConnector()
 
     def get_listener(self, loc, handle_comm, deserialize, **connection_args):
-        print("UCXBackend.get_listener", flush=True)
         warnings.warn(
             "you have requested protocol='ucx', which now defaults to UCXX but "
             "the package distributed-ucxx is not installed. In the current version "
@@ -660,8 +659,6 @@ except ImportError:
 finally:
     backends["ucx"] = _rewrite_ucxx_backend()()
 backends["ucx-old"] = UCXBackendOld()
-print(f"{backends['ucx']=}", flush=True)
-print(f"{backends['ucx-old']=}", flush=True)
 
 
 def _prepare_ucx_config():

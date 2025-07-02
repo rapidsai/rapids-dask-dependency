@@ -646,18 +646,7 @@ def _rewrite_ucxx_backend():
     except ImportError:
         return UCXBackend
 
-try:
-    # It's necessary to `try`/`except` `import distributed_ucxx` first, then in
-    # the `finally` block `from distributed_ucxx.ucxx import UCXXBackend` should
-    # succeed if distributed-ucxx is installed. This requirement is probably due
-    # to distributed-ucxx registering `backends["ucxx"]` as an entry point.
-    # This entire block is temporary (along with this entire file) until UCXX
-    # becomes the default and only backend and UCX-Py is ultimately archived.
-    import distributed_ucxx
-except ImportError:
-    pass
-finally:
-    backends["ucx"] = _rewrite_ucxx_backend()()
+backends["ucx"] = _rewrite_ucxx_backend()()
 backends["ucx-old"] = UCXBackendOld()
 
 

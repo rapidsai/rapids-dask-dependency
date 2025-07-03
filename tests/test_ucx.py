@@ -1,10 +1,11 @@
+# Copyright (c) 2025, NVIDIA CORPORATION.
+
 import importlib
+import io
 import multiprocessing as mp
 import sys
-import io
 
 import pytest
-
 from dask_cuda import LocalCUDACluster
 
 mp = mp.get_context("spawn")  # type: ignore
@@ -20,6 +21,7 @@ def _test_protocol_ucx():
 
         if _has_distributed_ucxx():
             import distributed_ucxx
+
             assert all(
                 isinstance(batched_send.comm, distributed_ucxx.ucxx.UCXX)
                 for batched_send in cluster.scheduler.stream_comms.values()
@@ -41,6 +43,7 @@ def _test_protocol_ucxx():
         with LocalCUDACluster(protocol="ucxx") as cluster:
             assert cluster.scheduler_comm.address.startswith("ucxx://")
             import distributed_ucxx
+
             assert all(
                 isinstance(batched_send.comm, distributed_ucxx.ucxx.UCXX)
                 for batched_send in cluster.scheduler.stream_comms.values()
@@ -129,23 +132,25 @@ def test_protocol(protocol):
     # Check that the test passed
     assert success, f"Test failed in subprocess. Output:\n{output}"
 
-    # For the ucx protocol, check if warnings are printed when distributed_ucxx is not available
+    # For the ucx protocol, check if warnings are printed when distributed_ucxx is not
+    # available
     if protocol == "ucx" and not _has_distributed_ucxx():
         # Check if the warning about protocol='ucx' is printed
         print(f"Output for {protocol} protocol:\n{output}")
-        assert (
-            "you have requested protocol='ucx'" in output
-        ), f"Expected warning not found in output: {output}"
-        assert (
-            "distributed-ucxx is not installed" in output
-        ), f"Expected warning about distributed-ucxx not found in output: {output}"
+        assert "you have requested protocol='ucx'" in output, (
+            f"Expected warning not found in output: {output}"
+        )
+        assert "distributed-ucxx is not installed" in output, (
+            f"Expected warning about distributed-ucxx not found in output: {output}"
+        )
     elif protocol == "ucx" and _has_distributed_ucxx():
         # When distributed_ucxx is available, the warning should NOT be printed
-        assert (
-            "you have requested protocol='ucx'" not in output
-        ), f"Warning should not be printed when distributed_ucxx is available: {output}"
+        assert "you have requested protocol='ucx'" not in output, (
+            "Warning should not be printed when distributed_ucxx is available: "
+            f"{output}"
+        )
     elif protocol == "ucx-old":
         # The ucx-old protocol should not generate warnings
-        assert (
-            "you have requested protocol='ucx'" not in output
-        ), f"Warning should not be printed for ucx-old protocol: {output}"
+        assert "you have requested protocol='ucx'" not in output, (
+            f"Warning should not be printed for ucx-old protocol: {output}"
+        )

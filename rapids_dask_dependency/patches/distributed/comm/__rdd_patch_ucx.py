@@ -12,6 +12,7 @@ import functools
 import logging
 import os
 import struct
+import textwrap
 import warnings
 import weakref
 from collections.abc import Awaitable, Callable, Collection
@@ -563,14 +564,18 @@ class UCXBackend(Backend):
 
     def get_listener(self, loc, handle_comm, deserialize, **connection_args):
         warnings.warn(
-            "you have requested protocol='ucx', which now defaults to UCXX but "
-            "the package distributed-ucxx is not installed. In the current version "
-            "of Distributed this will fallback to UCX-Py which is now deprecated "
-            "and will be removed in a future release. For now protocol='ucx' will "
-            "fallback to the old UCX-Py library, but for continued use of UCX as "
-            "a Distributed communication backend, please ensure you switch to the "
-            "new distributed-ucxx package. To keep on using UCX-Py for now and "
-            "disable this warning, specify protocol='ucx-old'.",
+            textwrap.dedent(
+                """
+                you have requested protocol='ucx', which now defaults to UCXX but
+                the package distributed-ucxx is not installed. In the current version
+                of Distributed this will fallback to UCX-Py which is now deprecated
+                and will be removed in a future release. For now protocol='ucx' will
+                fallback to the old UCX-Py library, but for continued use of UCX as
+                a Distributed communication backend, please ensure you switch to the
+                new distributed-ucxx package. To keep on using UCX-Py for now and
+                disable this warning, specify protocol='ucx-old'.
+                """
+            ),
             FutureWarning,
         )
         return UCXListener(loc, handle_comm, deserialize, **connection_args)

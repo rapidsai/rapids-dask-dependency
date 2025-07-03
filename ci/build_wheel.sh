@@ -16,3 +16,7 @@ python -m pip wheel . -w "${RAPIDS_WHEEL_BLD_OUTPUT_DIR}" -vv --no-deps --disabl
 # Run tests
 python -m pip install "$(echo ${RAPIDS_WHEEL_BLD_OUTPUT_DIR}/*.whl)[test]"
 python -m pytest -v tests/
+
+# Remove distributed-ucxx and test again with UCX-Py only
+pip uninstall -y distributed-ucxx
+python -m pytest -v tests/

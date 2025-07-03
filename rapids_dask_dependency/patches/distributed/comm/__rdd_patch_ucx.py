@@ -568,12 +568,13 @@ class UCXBackend(Backend):
                 """
                 you have requested protocol='ucx', which now defaults to UCXX but
                 the package distributed-ucxx is not installed. In the current version
-                of Distributed this will fallback to UCX-Py which is now deprecated
-                and will be removed in a future release. For now protocol='ucx' will
-                fallback to the old UCX-Py library, but for continued use of UCX as
-                a Distributed communication backend, please ensure you switch to the
-                new distributed-ucxx package. To keep on using UCX-Py for now and
-                disable this warning, specify protocol='ucx-old'.
+                of Distributed this will fallback to UCX-Py, the UCX-Py project is now
+                deprecated and will be removed, release 0.45 (RAPIDS 25.08) will be its
+                last release. For now protocol='ucx' will fallback to the old UCX-Py
+                library, but for continued use of UCX as a Distributed communication
+                backend, please ensure you switch to the new distributed-ucxx package.
+                To keep on using UCX-Py for now and disable this warning, specify
+                protocol='ucx-old'.
                 """
             ),
             FutureWarning,

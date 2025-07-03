@@ -27,7 +27,6 @@ def _test_protocol_ucx():
         else:
             import rapids_dask_dependency
 
-            # with pytest.warns(UserWarning, match="you have requested protocol='ucx'"):
             assert all(
                 isinstance(
                     batched_send.comm,

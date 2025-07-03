@@ -571,7 +571,7 @@ class UCXBackend(Backend):
             "a Distributed communication backend, please ensure you switch to the "
             "new distributed-ucxx package. To keep on using UCX-Py for now and "
             "disable this warning, specify protocol='ucx-old'.",
-            # DeprecationWarning,
+            FutureWarning,
         )
         return UCXListener(loc, handle_comm, deserialize, **connection_args)
 

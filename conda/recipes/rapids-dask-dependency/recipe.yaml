@@ -37,6 +37,18 @@ tests:
         - tests/*
     requirements:
       run:
+        - dask-cuda ==25.08
+        - pytest
+        - ucx-py ==0.45
+  - script:
+      - python -m pytest -v tests/
+    files:
+      source:
+        - tests/*
+    requirements:
+      run:
+        - dask-cuda ==25.08
+        - distributed-ucxx ==0.45
         - pytest
 
 about:

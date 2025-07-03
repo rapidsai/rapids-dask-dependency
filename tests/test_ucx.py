@@ -1,9 +1,7 @@
 import importlib
 import multiprocessing as mp
-import subprocess
 import sys
-import tempfile
-import os
+import io
 
 import pytest
 
@@ -21,6 +19,7 @@ def _test_protocol_ucx():
         assert cluster.scheduler_comm.address.startswith("ucx://")
 
         if _has_distributed_ucxx():
+            import distributed_ucxx
             assert all(
                 isinstance(batched_send.comm, distributed_ucxx.ucxx.UCXX)
                 for batched_send in cluster.scheduler.stream_comms.values()
@@ -42,6 +41,7 @@ def _test_protocol_ucxx():
     if _has_distributed_ucxx():
         with LocalCUDACluster(protocol="ucxx") as cluster:
             assert cluster.scheduler_comm.address.startswith("ucxx://")
+            import distributed_ucxx
             assert all(
                 isinstance(batched_send.comm, distributed_ucxx.ucxx.UCXX)
                 for batched_send in cluster.scheduler.stream_comms.values()
@@ -66,34 +66,39 @@ def _test_protocol_ucx_old():
         )
 
 
-def _run_test_in_subprocess(test_func_name):
+def _run_test_with_output_capture(test_func_name, conn):
     """Run a test function in a subprocess and capture stdout/stderr."""
-    # Use Python -c to run the test function directly
-    python_code = f"""
-import sys
-import os
-sys.path.insert(0, os.getcwd())
+    # Redirect stdout and stderr to capture output
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    captured_output = io.StringIO()
+    sys.stdout = sys.stderr = captured_output
 
-try:
-    from tests.test_ucx import {test_func_name}
-    {test_func_name}()
-    print("SUCCESS", file=sys.stderr)
-except Exception as e:
-    print(f"ERROR: {{e}}", file=sys.stderr)
-    import traceback
-    traceback.print_exc()
-    sys.exit(1)
-"""
-    
-    # Run the Python code in a subprocess
-    result = subprocess.run(
-        [sys.executable, "-c", python_code],
-        capture_output=True,
-        text=True,
-        timeout=60,
-        cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
-    return result
+    try:
+        # Import and run the test function
+        if test_func_name == "_test_protocol_ucx":
+            _test_protocol_ucx()
+        elif test_func_name == "_test_protocol_ucxx":
+            _test_protocol_ucxx()
+        elif test_func_name == "_test_protocol_ucx_old":
+            _test_protocol_ucx_old()
+        else:
+            raise ValueError(f"Unknown test function: {test_func_name}")
+
+        output = captured_output.getvalue()
+        conn.send((True, output))  # True = success
+    except Exception as e:
+        output = captured_output.getvalue()
+        output += f"\nException: {e}"
+        import traceback
+
+        output += f"\nTraceback:\n{traceback.format_exc()}"
+        conn.send((False, output))  # False = failure
+    finally:
+        # Restore original stdout/stderr
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+        conn.close()
 
 
 @pytest.mark.parametrize("protocol", ["ucx", "ucxx", "ucx-old"])
@@ -105,24 +110,43 @@ def test_protocol(protocol):
     else:
         test_func_name = "_test_protocol_ucx_old"
 
-    result = _run_test_in_subprocess(test_func_name)
-    
+    # Create a pipe for communication between parent and child processes
+    parent_conn, child_conn = mp.Pipe()
+    p = mp.Process(
+        target=_run_test_with_output_capture, args=(test_func_name, child_conn)
+    )
+
+    p.start()
+    p.join(timeout=60)
+
+    if p.is_alive():
+        p.kill()
+        p.close()
+        raise TimeoutError("Test process timed out")
+
+    # Get the result from the child process
+    success, output = parent_conn.recv()
+
     # Check that the test passed
-    assert result.returncode == 0, f"Test failed with return code {result.returncode}"
-    assert "SUCCESS" in result.stderr, f"Test did not complete successfully. stderr: {result.stderr}"
-    
+    assert success, f"Test failed in subprocess. Output:\n{output}"
+
     # For the ucx protocol, check if warnings are printed when distributed_ucxx is not available
     if protocol == "ucx" and not _has_distributed_ucxx():
         # Check if the warning about protocol='ucx' is printed
-        combined_output = result.stdout + result.stderr
-        print(combined_output)
-        assert "you have requested protocol='ucx'" in combined_output, f"Expected warning not found in output: {combined_output}"
-        assert "distributed-ucxx is not installed" in combined_output, f"Expected warning about distributed-ucxx not found in output: {combined_output}"
+        print(f"Output for {protocol} protocol:\n{output}")
+        assert (
+            "you have requested protocol='ucx'" in output
+        ), f"Expected warning not found in output: {output}"
+        assert (
+            "distributed-ucxx is not installed" in output
+        ), f"Expected warning about distributed-ucxx not found in output: {output}"
     elif protocol == "ucx" and _has_distributed_ucxx():
         # When distributed_ucxx is available, the warning should NOT be printed
-        combined_output = result.stdout + result.stderr
-        assert "you have requested protocol='ucx'" not in combined_output, f"Warning should not be printed when distributed_ucxx is available: {combined_output}"
+        assert (
+            "you have requested protocol='ucx'" not in output
+        ), f"Warning should not be printed when distributed_ucxx is available: {output}"
     elif protocol == "ucx-old":
         # The ucx-old protocol should not generate warnings
-        combined_output = result.stdout + result.stderr
-        assert "you have requested protocol='ucx'" not in combined_output, f"Warning should not be printed for ucx-old protocol: {combined_output}"
+        assert (
+            "you have requested protocol='ucx'" not in output
+        ), f"Warning should not be printed for ucx-old protocol: {output}"

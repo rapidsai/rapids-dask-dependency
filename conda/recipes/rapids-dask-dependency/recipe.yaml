@@ -52,6 +52,7 @@ tests:
         - distributed-ucxx ==0.45.*
         - nvidia-ml-py
         - pytest
+        - ucx-py ==0.45.*
 
 about:
   homepage: https://github.com/rapidsai/rapids-dask-dependency

@@ -38,6 +38,7 @@ tests:
     requirements:
       run:
         - dask-cuda ==25.8.*
+        - nvidia-ml-py
         - pytest
         - ucx-py ==0.45.*
   - script:
@@ -49,6 +50,7 @@ tests:
       run:
         - dask-cuda ==25.8.*
         - distributed-ucxx ==0.45.*
+        - nvidia-ml-py
         - pytest
 
 about:

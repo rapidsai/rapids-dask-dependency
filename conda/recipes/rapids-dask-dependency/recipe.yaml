@@ -37,22 +37,7 @@ tests:
         - tests/*
     requirements:
       run:
-        - dask-cuda ==25.8.*
-        - nvidia-ml-py
         - pytest
-        - ucx-py ==0.45.*
-  - script:
-      - python -m pytest -v tests/
-    files:
-      source:
-        - tests/*
-    requirements:
-      run:
-        - dask-cuda ==25.8.*
-        - distributed-ucxx ==0.45.*
-        - nvidia-ml-py
-        - pytest
-        - ucx-py ==0.45.*
 
 about:
   homepage: https://github.com/rapidsai/rapids-dask-dependency

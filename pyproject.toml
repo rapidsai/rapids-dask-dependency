@@ -20,11 +20,7 @@ readme = { file = "README.md", content-type = "text/markdown" }
 
 [project.optional-dependencies]
 test = [
-    "dask-cuda==25.8.*,>=0.0.0a0",
-    "distributed-ucxx-cu12==0.45.*,>=0.0.0a0",
-    "nvidia-ml-py",
     "pytest",
-    "ucx-py-cu12==0.45.*,>=0.0.0a0",
 ]
 
 [tool.setuptools]

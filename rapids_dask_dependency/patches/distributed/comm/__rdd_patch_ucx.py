@@ -12,6 +12,8 @@ import functools
 import logging
 import os
 import struct
+import textwrap
+import warnings
 import weakref
 from collections.abc import Awaitable, Callable, Collection
 from typing import TYPE_CHECKING, Any
@@ -493,7 +495,7 @@ class UCXListener(BaseListener):
     ):
         super().__init__()
         if not address.startswith("ucx"):
-            address = "ucx://" + address
+            address = self.prefix + address
         self.ip, self._input_port = parse_host_port(address, default_port=0)
         self.comm_handler = comm_handler
         self.deserialize = deserialize
@@ -508,7 +510,7 @@ class UCXListener(BaseListener):
 
     @property
     def address(self):
-        return "ucx://" + self.ip + ":" + str(self.port)
+        return self.prefix + self.ip + ":" + str(self.port)
 
     async def start(self):
         async def serve_forever(client_ep):
@@ -561,6 +563,21 @@ class UCXBackend(Backend):
         return UCXConnector()
 
     def get_listener(self, loc, handle_comm, deserialize, **connection_args):
+        warnings.warn(
+            textwrap.dedent(
+                """\
+                you have requested protocol='ucx', which now defaults to UCXX but
+                the package 'distributed-ucxx' is not installed. The current version
+                of Distributed will fallback to using UCX-Py, but this fallback is
+                deprecated and will be removed in the next release (RAPIDS 25.10).
+                To silence this warning and use UCXX, install the 'distributed-ucxx'
+                package, or to use UCX-Py and silence the warning, use
+                'protocol="ucx-old"' when you create your Distributed or Dask-CUDA
+                cluster.\
+                """
+            ),
+            FutureWarning,
+        )
         return UCXListener(loc, handle_comm, deserialize, **connection_args)
 
     # Address handling
@@ -586,7 +603,56 @@ class UCXBackend(Backend):
         return unparse_host_port(local_host, None)
 
 
-backends["ucx"] = UCXBackend()
+class UCXConnectorOld(UCXConnector):
+    prefix = "ucx-old://"
+
+
+class UCXListenerOld(UCXListener):
+    prefix = UCXConnectorOld.prefix
+
+
+class UCXBackendOld(UCXBackend):
+    def get_connector(self):
+        return UCXConnectorOld()
+
+    def get_listener(self, loc, handle_comm, deserialize, **connection_args):
+        return UCXListenerOld(loc, handle_comm, deserialize, **connection_args)
+
+
+def _rewrite_ucxx_backend():
+    try:
+        from distributed_ucxx.ucxx import UCXX, UCXXBackend, UCXXConnector, UCXXListener
+
+
+        class UCXXPrefixRewrite(UCXX):
+            prefix = "ucx://"
+
+
+        class UCXXConnectorPrefixRewrite(UCXXConnector):
+            prefix = "ucx://"
+            comm_class = UCXXPrefixRewrite
+
+
+        class UCXXListenerPrefixRewrite(UCXXListener):
+            prefix = UCXXConnectorPrefixRewrite.prefix
+            comm_class = UCXXConnectorPrefixRewrite.comm_class
+            encrypted = UCXXConnectorPrefixRewrite.encrypted
+
+
+        class UCXXBackendPrefixRewrite(UCXXBackend):
+            def get_connector(self):
+                return UCXXConnectorPrefixRewrite()
+
+            def get_listener(self, loc, handle_comm, deserialize, **connection_args):
+                return UCXXListenerPrefixRewrite(loc, handle_comm, deserialize, **connection_args)
+
+
+        return UCXXBackendPrefixRewrite
+    except ImportError:
+        return UCXBackend
+
+backends["ucx"] = _rewrite_ucxx_backend()()
+backends["ucx-old"] = UCXBackendOld()
 
 
 def _prepare_ucx_config():

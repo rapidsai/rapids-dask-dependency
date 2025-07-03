@@ -565,16 +565,15 @@ class UCXBackend(Backend):
     def get_listener(self, loc, handle_comm, deserialize, **connection_args):
         warnings.warn(
             textwrap.dedent(
-                """
+                """\
                 you have requested protocol='ucx', which now defaults to UCXX but
-                the package distributed-ucxx is not installed. In the current version
-                of Distributed this will fallback to UCX-Py, the UCX-Py project is now
-                deprecated and will be removed, release 0.45 (RAPIDS 25.08) will be its
-                last release. For now protocol='ucx' will fallback to the old UCX-Py
-                library, but for continued use of UCX as a Distributed communication
-                backend, please ensure you switch to the new distributed-ucxx package.
-                To keep on using UCX-Py for now and disable this warning, specify
-                protocol='ucx-old'.
+                the package 'distributed-ucxx' is not installed. The current version
+                of Distributed will fallback to using UCX-Py, but this fallback is
+                deprecated and will be removed in the next release (RAPIDS 25.10).
+                To silence this warning and use UCXX, install the 'distributed-ucxx'
+                package, or to use UCX-Py and silence the warning, use
+                'protocol="ucx-old"' when you create your Distributed or Dask-CUDA
+                cluster.\
                 """
             ),
             FutureWarning,

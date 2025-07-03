@@ -1,5 +1,9 @@
 import importlib
 import multiprocessing as mp
+import subprocess
+import sys
+import tempfile
+import os
 
 import pytest
 
@@ -9,7 +13,7 @@ mp = mp.get_context("spawn")  # type: ignore
 
 
 def _has_distributed_ucxx() -> bool:
-    bool(importlib.util.find_spec("distributed_ucxx"))
+    return bool(importlib.util.find_spec("distributed_ucxx"))
 
 
 def _test_protocol_ucx():
@@ -62,20 +66,63 @@ def _test_protocol_ucx_old():
         )
 
 
+def _run_test_in_subprocess(test_func_name):
+    """Run a test function in a subprocess and capture stdout/stderr."""
+    # Use Python -c to run the test function directly
+    python_code = f"""
+import sys
+import os
+sys.path.insert(0, os.getcwd())
+
+try:
+    from tests.test_ucx import {test_func_name}
+    {test_func_name}()
+    print("SUCCESS", file=sys.stderr)
+except Exception as e:
+    print(f"ERROR: {{e}}", file=sys.stderr)
+    import traceback
+    traceback.print_exc()
+    sys.exit(1)
+"""
+    
+    # Run the Python code in a subprocess
+    result = subprocess.run(
+        [sys.executable, "-c", python_code],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
+    return result
+
+
 @pytest.mark.parametrize("protocol", ["ucx", "ucxx", "ucx-old"])
 def test_protocol(protocol):
     if protocol == "ucx":
-        p = mp.Process(target=_test_protocol_ucx)
+        test_func_name = "_test_protocol_ucx"
     elif protocol == "ucxx":
-        p = mp.Process(target=_test_protocol_ucxx)
+        test_func_name = "_test_protocol_ucxx"
     else:
-        p = mp.Process(target=_test_protocol_ucx_old)
+        test_func_name = "_test_protocol_ucx_old"
 
-    p.start()
-    p.join(timeout=60)
-
-    if p.is_alive():
-        p.kill()
-        p.close()
-
-    assert p.exitcode == 0
+    result = _run_test_in_subprocess(test_func_name)
+    
+    # Check that the test passed
+    assert result.returncode == 0, f"Test failed with return code {result.returncode}"
+    assert "SUCCESS" in result.stderr, f"Test did not complete successfully. stderr: {result.stderr}"
+    
+    # For the ucx protocol, check if warnings are printed when distributed_ucxx is not available
+    if protocol == "ucx" and not _has_distributed_ucxx():
+        # Check if the warning about protocol='ucx' is printed
+        combined_output = result.stdout + result.stderr
+        print(combined_output)
+        assert "you have requested protocol='ucx'" in combined_output, f"Expected warning not found in output: {combined_output}"
+        assert "distributed-ucxx is not installed" in combined_output, f"Expected warning about distributed-ucxx not found in output: {combined_output}"
+    elif protocol == "ucx" and _has_distributed_ucxx():
+        # When distributed_ucxx is available, the warning should NOT be printed
+        combined_output = result.stdout + result.stderr
+        assert "you have requested protocol='ucx'" not in combined_output, f"Warning should not be printed when distributed_ucxx is available: {combined_output}"
+    elif protocol == "ucx-old":
+        # The ucx-old protocol should not generate warnings
+        combined_output = result.stdout + result.stderr
+        assert "you have requested protocol='ucx'" not in combined_output, f"Warning should not be printed for ucx-old protocol: {combined_output}"

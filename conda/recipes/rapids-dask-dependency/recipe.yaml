@@ -25,9 +25,9 @@ requirements:
     - pip
     - setuptools
   run:
-    - dask ==2025.5.0
-    - dask-core ==2025.5.0
-    - distributed ==2025.5.0
+    - dask ==2025.7.0
+    - dask-core ==2025.7.0
+    - distributed ==2025.7.0
 
 tests:
   - script:

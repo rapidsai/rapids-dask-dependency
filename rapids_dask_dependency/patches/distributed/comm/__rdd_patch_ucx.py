@@ -16,6 +16,7 @@ import textwrap
 import warnings
 import weakref
 from collections.abc import Awaitable, Callable, Collection
+from enum import Enum
 from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 
@@ -84,13 +85,18 @@ def _warn_cuda_context_wrong_device(
     )
 
 
-def synchronize_stream(stream=0):
+class CudaStream(Enum):
+    Default = 0
+
+
+def synchronize_stream(stream: CudaStream = CudaStream.Default):
     import numba.cuda
 
-    ctx = numba.cuda.current_context()
-    cu_stream = numba.cuda.driver.drvapi.cu_stream(stream)
-    stream = numba.cuda.driver.Stream(ctx, cu_stream, None)
-    stream.synchronize()
+    if stream == CudaStream.Default:
+        numba_stream = numba.cuda.default_stream()
+    else:
+        raise ValueError("Unsupported stream")
+    numba_stream.synchronize()
 
 
 def init_once():
@@ -333,7 +339,7 @@ class UCX(Comm):
             # non-blocking CUDA streams. Note this is only sufficient if the memory
             # being sent is not currently in use on non-blocking CUDA streams.
             if any(cuda_send_frames):
-                synchronize_stream(0)
+                synchronize_stream(CudaStream.Default)
 
             for each_frame in send_frames:
                 await self.ep.send(each_frame)
@@ -390,7 +396,7 @@ class UCX(Comm):
             # It is necessary to first populate `frames` with CUDA arrays and synchronize
             # the default stream before starting receiving to ensure buffers have been allocated
             if any(cuda_recv_frames):
-                synchronize_stream(0)
+                synchronize_stream(CudaStream.Default)
 
             try:
                 for each_frame in recv_frames:

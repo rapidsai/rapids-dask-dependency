@@ -12,8 +12,11 @@ import functools
 import logging
 import os
 import struct
+import textwrap
+import warnings
 import weakref
 from collections.abc import Awaitable, Callable, Collection
+from enum import Enum
 from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 
@@ -82,13 +85,18 @@ def _warn_cuda_context_wrong_device(
     )
 
 
-def synchronize_stream(stream=0):
+class CudaStream(Enum):
+    Default = 0
+
+
+def synchronize_stream(stream: CudaStream = CudaStream.Default):
     import numba.cuda
 
-    ctx = numba.cuda.current_context()
-    cu_stream = numba.cuda.driver.drvapi.cu_stream(stream)
-    stream = numba.cuda.driver.Stream(ctx, cu_stream, None)
-    stream.synchronize()
+    if stream == CudaStream.Default:
+        numba_stream = numba.cuda.default_stream()
+    else:
+        raise ValueError("Unsupported stream")
+    numba_stream.synchronize()
 
 
 def init_once():
@@ -331,7 +339,7 @@ class UCX(Comm):
             # non-blocking CUDA streams. Note this is only sufficient if the memory
             # being sent is not currently in use on non-blocking CUDA streams.
             if any(cuda_send_frames):
-                synchronize_stream(0)
+                synchronize_stream(CudaStream.Default)
 
             for each_frame in send_frames:
                 await self.ep.send(each_frame)
@@ -388,7 +396,7 @@ class UCX(Comm):
             # It is necessary to first populate `frames` with CUDA arrays and synchronize
             # the default stream before starting receiving to ensure buffers have been allocated
             if any(cuda_recv_frames):
-                synchronize_stream(0)
+                synchronize_stream(CudaStream.Default)
 
             try:
                 for each_frame in recv_frames:
@@ -493,7 +501,7 @@ class UCXListener(BaseListener):
     ):
         super().__init__()
         if not address.startswith("ucx"):
-            address = "ucx://" + address
+            address = self.prefix + address
         self.ip, self._input_port = parse_host_port(address, default_port=0)
         self.comm_handler = comm_handler
         self.deserialize = deserialize
@@ -508,7 +516,7 @@ class UCXListener(BaseListener):
 
     @property
     def address(self):
-        return "ucx://" + self.ip + ":" + str(self.port)
+        return self.prefix + self.ip + ":" + str(self.port)
 
     async def start(self):
         async def serve_forever(client_ep):
@@ -561,6 +569,21 @@ class UCXBackend(Backend):
         return UCXConnector()
 
     def get_listener(self, loc, handle_comm, deserialize, **connection_args):
+        warnings.warn(
+            textwrap.dedent(
+                """\
+                you have requested protocol='ucx', which now defaults to UCXX but
+                the package 'distributed-ucxx' is not installed. The current version
+                of Distributed will fallback to using UCX-Py, but this fallback is
+                deprecated and will be removed in the next release (RAPIDS 25.10).
+                To silence this warning and use UCXX, install the 'distributed-ucxx'
+                package, or to use UCX-Py and silence the warning, use
+                'protocol="ucx-old"' when you create your Distributed or Dask-CUDA
+                cluster.\
+                """
+            ),
+            FutureWarning,
+        )
         return UCXListener(loc, handle_comm, deserialize, **connection_args)
 
     # Address handling
@@ -586,7 +609,56 @@ class UCXBackend(Backend):
         return unparse_host_port(local_host, None)
 
 
-backends["ucx"] = UCXBackend()
+class UCXConnectorOld(UCXConnector):
+    prefix = "ucx-old://"
+
+
+class UCXListenerOld(UCXListener):
+    prefix = UCXConnectorOld.prefix
+
+
+class UCXBackendOld(UCXBackend):
+    def get_connector(self):
+        return UCXConnectorOld()
+
+    def get_listener(self, loc, handle_comm, deserialize, **connection_args):
+        return UCXListenerOld(loc, handle_comm, deserialize, **connection_args)
+
+
+def _rewrite_ucxx_backend():
+    try:
+        from distributed_ucxx.ucxx import UCXX, UCXXBackend, UCXXConnector, UCXXListener
+
+
+        class UCXXPrefixRewrite(UCXX):
+            prefix = "ucx://"
+
+
+        class UCXXConnectorPrefixRewrite(UCXXConnector):
+            prefix = "ucx://"
+            comm_class = UCXXPrefixRewrite
+
+
+        class UCXXListenerPrefixRewrite(UCXXListener):
+            prefix = UCXXConnectorPrefixRewrite.prefix
+            comm_class = UCXXConnectorPrefixRewrite.comm_class
+            encrypted = UCXXConnectorPrefixRewrite.encrypted
+
+
+        class UCXXBackendPrefixRewrite(UCXXBackend):
+            def get_connector(self):
+                return UCXXConnectorPrefixRewrite()
+
+            def get_listener(self, loc, handle_comm, deserialize, **connection_args):
+                return UCXXListenerPrefixRewrite(loc, handle_comm, deserialize, **connection_args)
+
+
+        return UCXXBackendPrefixRewrite
+    except ImportError:
+        return UCXBackend
+
+backends["ucx"] = _rewrite_ucxx_backend()()
+backends["ucx-old"] = UCXBackendOld()
 
 
 def _prepare_ucx_config():

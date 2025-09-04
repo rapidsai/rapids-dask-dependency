@@ -150,7 +150,6 @@ def _rewrite_ucxx_backend():
             def get_listener(self, loc, handle_comm, deserialize, **connection_args):
                 return UCXXListenerPrefixRewrite(loc, handle_comm, deserialize, **connection_args)
 
-
         return UCXXBackendPrefixRewrite
     except ImportError:
         return UCXBackendDeprecated

@@ -4,12 +4,6 @@ import multiprocessing
 import subprocess
 
 
-def check_dask(q: multiprocessing.Queue):
-    import dask
-
-    q.put(hasattr(dask, "_rapids_patched"))
-
-
 def _run_in_subprocess(func):
     q = multiprocessing.Queue()
     p = multiprocessing.Process(target=func, args=(q,))
@@ -17,6 +11,12 @@ def _run_in_subprocess(func):
     result = q.get()
     p.join()
     return result
+
+
+def check_dask(q: multiprocessing.Queue):
+    import dask
+
+    q.put(hasattr(dask, "_rapids_patched"))
 
 
 def test_dask():
@@ -27,7 +27,8 @@ def test_dask():
 def check_distributed(q: multiprocessing.Queue):
     import distributed
 
-    assert hasattr(distributed, "_rapids_patched")
+    result = hasattr(distributed, "_rapids_patched")
+    q.put(result)
 
 
 def test_distributed():

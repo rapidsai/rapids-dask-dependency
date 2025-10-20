@@ -1,63 +1,38 @@
 # Copyright (c) 2024-2025, NVIDIA CORPORATION.
 
-import contextlib
+import multiprocessing
 import subprocess
-import tempfile
-from functools import wraps
-from multiprocessing import Process
-
-import pytest
 
 
-def run_test_in_subprocess(func):
-    def redirect_stdout_stderr(func, stdout, stderr, *args, **kwargs):
-        with open(stdout, "w") as stdout_file, open(stderr, "w") as stderr_file:
-            with (
-                contextlib.redirect_stdout(stdout_file),
-                contextlib.redirect_stderr(stderr_file),
-            ):
-                func(*args, **kwargs)
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        with (
-            tempfile.NamedTemporaryFile(mode="w+") as stdout,
-            tempfile.NamedTemporaryFile(mode="w+") as stderr,
-        ):
-            p = Process(
-                target=redirect_stdout_stderr,
-                args=(func, stdout.name, stderr.name, *args),
-                kwargs=kwargs,
-            )
-            p.start()
-            p.join()
-            stdout_log = stdout.file.read()
-            stderr_log = stderr.file.read()
-        if p.exitcode != 0:
-            msg = f"Process exited {p.exitcode}."
-            if stdout_log:
-                msg += f"\nstdout:\n{stdout_log}"
-            if stderr_log:
-                msg += f"\nstderr:\n{stderr_log}"
-            raise RuntimeError(msg)
-
-    return wrapper
-
-
-@pytest.mark.xfail(reason="Temporary xfail to unblock CI")
-@run_test_in_subprocess
-def test_dask():
+def check_dask(q: multiprocessing.Queue):
     import dask
 
-    assert hasattr(dask, "_rapids_patched")
+    q.put(hasattr(dask, "_rapids_patched"))
 
 
-@pytest.mark.xfail(reason="Temporary xfail to unblock CI")
-@run_test_in_subprocess
-def test_distributed():
+def _run_in_subprocess(func):
+    q = multiprocessing.Queue()
+    p = multiprocessing.Process(target=func, args=(q,))
+    p.start()
+    result = q.get()
+    p.join()
+    return result
+
+
+def test_dask():
+    result = _run_in_subprocess(check_dask)
+    assert result
+
+
+def check_distributed(q: multiprocessing.Queue):
     import distributed
 
     assert hasattr(distributed, "_rapids_patched")
+
+
+def test_distributed():
+    result = _run_in_subprocess(check_distributed)
+    assert result
 
 
 def test_dask_cli():

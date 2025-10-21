@@ -1,39 +1,61 @@
 # Copyright (c) 2024-2025, NVIDIA CORPORATION.
 
-import multiprocessing
+import contextlib
 import subprocess
+import tempfile
+from multiprocessing import Process
 
 
-def _run_in_subprocess(func):
-    q = multiprocessing.Queue()
-    p = multiprocessing.Process(target=func, args=(q,))
-    p.start()
-    result = q.get()
-    p.join()
-    return result
+def redirect_stdout_stderr(func, stdout, stderr, *args, **kwargs):
+    with open(stdout, "w") as stdout_file, open(stderr, "w") as stderr_file:
+        with (
+            contextlib.redirect_stdout(stdout_file),
+            contextlib.redirect_stderr(stderr_file),
+        ):
+            func(*args, **kwargs)
 
 
-def check_dask(q: multiprocessing.Queue):
+def run_test_in_subprocess(func, *args, **kwargs):
+    with (
+        tempfile.NamedTemporaryFile(mode="w+") as stdout,
+        tempfile.NamedTemporaryFile(mode="w+") as stderr,
+    ):
+        p = Process(
+            target=redirect_stdout_stderr,
+            args=(func, stdout.name, stderr.name, *args),
+            kwargs=kwargs,
+        )
+        p.start()
+        p.join()
+        stdout_log = stdout.file.read()
+        stderr_log = stderr.file.read()
+    if p.exitcode != 0:
+        msg = f"Process exited {p.exitcode}."
+        if stdout_log:
+            msg += f"\nstdout:\n{stdout_log}"
+        if stderr_log:
+            msg += f"\nstderr:\n{stderr_log}"
+        raise RuntimeError(msg)
+
+
+def check_dask():
     import dask
 
-    q.put(hasattr(dask, "_rapids_patched"))
+    assert hasattr(dask, "_rapids_patched")
 
 
 def test_dask():
-    result = _run_in_subprocess(check_dask)
-    assert result
+    run_test_in_subprocess(check_dask)
 
 
-def check_distributed(q: multiprocessing.Queue):
+def check_distributed():
     import distributed
 
-    result = hasattr(distributed, "_rapids_patched")
-    q.put(result)
+    assert hasattr(distributed, "_rapids_patched")
 
 
 def test_distributed():
-    result = _run_in_subprocess(check_distributed)
-    assert result
+    run_test_in_subprocess(check_distributed)
 
 
 def test_dask_cli():

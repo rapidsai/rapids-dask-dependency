@@ -2,7 +2,6 @@
 
 import contextlib
 import subprocess
-import tempfile
 from multiprocessing import Process
 
 
@@ -15,20 +14,18 @@ def redirect_stdout_stderr(func, stdout, stderr, *args, **kwargs):
             func(*args, **kwargs)
 
 
-def run_test_in_subprocess(func, *args, **kwargs):
-    with (
-        tempfile.NamedTemporaryFile(mode="w+") as stdout,
-        tempfile.NamedTemporaryFile(mode="w+") as stderr,
-    ):
-        p = Process(
-            target=redirect_stdout_stderr,
-            args=(func, stdout.name, stderr.name, *args),
-            kwargs=kwargs,
-        )
-        p.start()
-        p.join()
-        stdout_log = stdout.file.read()
-        stderr_log = stderr.file.read()
+def run_test_in_subprocess(func, tmp_path, *args, **kwargs):
+    stdout = tmp_path / "stdout.log"
+    stderr = tmp_path / "stderr.log"
+    p = Process(
+        target=redirect_stdout_stderr,
+        args=(func, stdout, stderr, *args),
+        kwargs=kwargs,
+    )
+    p.start()
+    p.join()
+    stdout_log = stdout.read_text()
+    stderr_log = stderr.read_text()
     if p.exitcode != 0:
         msg = f"Process exited {p.exitcode}."
         if stdout_log:
@@ -44,8 +41,8 @@ def check_dask():
     assert hasattr(dask, "_rapids_patched")
 
 
-def test_dask():
-    run_test_in_subprocess(check_dask)
+def test_dask(tmp_path):
+    run_test_in_subprocess(check_dask, tmp_path)
 
 
 def check_distributed():
@@ -54,8 +51,8 @@ def check_distributed():
     assert hasattr(distributed, "_rapids_patched")
 
 
-def test_distributed():
-    run_test_in_subprocess(check_distributed)
+def test_distributed(tmp_path):
+    run_test_in_subprocess(check_distributed, tmp_path)
 
 
 def test_dask_cli():

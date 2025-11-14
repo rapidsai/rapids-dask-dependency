@@ -9,7 +9,7 @@ requires = [
 
 [project]
 name = "rapids-dask-dependency"
-version = "25.12.00a0"
+version = "26.02.00a0"
 description = "Dask and Distributed version pinning for RAPIDS"
 dependencies = [
     "dask==2025.9.1",

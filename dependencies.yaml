@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025, NVIDIA CORPORATION.
+# SPDX-License-Identifier: Apache-2.0
+
+# Dependency list for https://github.com/rapidsai/dependency-file-generator
+files:
+  py_build:
+    output: pyproject
+    pyproject_dir: .
+    extras:
+      table: build-system
+    includes:
+      - python_build_setuptools
+  py_run:
+    output: pyproject
+    pyproject_dir: .
+    extras:
+      table: project
+    includes:
+      - python_run
+  py_test:
+    output: pyproject
+    pyproject_dir: .
+    extras:
+      table: project.optional-dependencies
+      key: test
+    includes:
+      - python_test
+dependencies:
+  python_build_setuptools:
+    common:
+      - output_types: [pyproject, requirements]
+        packages:
+          - setuptools
+          - wheel
+  python_run:
+    common:
+      - output_types: [pyproject, requirements]
+        packages:
+          - dask==2025.12.0
+          - distributed==2025.12.0
+  python_test:
+    common:
+      - output_types: [pyproject, requirements]
+        packages:
+          - pytest

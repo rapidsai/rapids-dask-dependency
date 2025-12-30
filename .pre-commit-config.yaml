@@ -5,7 +5,7 @@ exclude: ".*__rdd_patch_.*"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -14,20 +14,25 @@ repos:
     hooks:
       - id: codespell
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.6
+    rev: v0.14.10
     hooks:
       - id: ruff
         args: ["--fix"]
       - id: ruff-format
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.10.0.1
+    rev: v0.11.0.1
     hooks:
       - id: shellcheck
         args: ["--severity=warning"]
   - repo: https://github.com/rapidsai/pre-commit-hooks
-    rev: v0.7.0
+    rev: v1.2.1
     hooks:
       - id: verify-copyright
+  - repo: https://github.com/rapidsai/dependency-file-generator
+    rev: v1.20.2
+    hooks:
+        - id: rapids-dependency-file-generator
+          args: ["--clean", "--warn-all", "--strict"]
 
 default_language_version:
       python: python3

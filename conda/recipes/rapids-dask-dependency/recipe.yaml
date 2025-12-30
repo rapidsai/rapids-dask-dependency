@@ -41,5 +41,5 @@ tests:
 
 about:
   homepage: https://github.com/rapidsai/rapids-dask-dependency
-  license: ${{ load_from_file("pyproject.toml").project.license.text }}
+  license: ${{ load_from_file("pyproject.toml").project.license }}
   summary: ${{ load_from_file("pyproject.toml").project.description }}

@@ -23,7 +23,7 @@ build:
 requirements:
   host:
     - pip
-    - setuptools
+    - setuptools>=77.0.0
   run:
     - dask ==2025.12.0
     - dask-core ==2025.12.0

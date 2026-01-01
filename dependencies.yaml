@@ -30,7 +30,7 @@ dependencies:
     common:
       - output_types: [pyproject, requirements]
         packages:
-          - setuptools
+          - setuptools>=77.0.0
           - wheel
   python_run:
     common:

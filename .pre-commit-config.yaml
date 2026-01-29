@@ -33,6 +33,14 @@ repos:
     hooks:
         - id: rapids-dependency-file-generator
           args: ["--clean", "--warn-all", "--strict"]
+  - repo: local
+    hooks:
+      - id: check-dask-versions
+        name: check dask version consistency
+        entry: python ci/check_dask_versions.py
+        language: python
+        files: ^(dependencies\.yaml|pyproject\.toml|conda/recipes/rapids-dask-dependency/recipe\.yaml)$
+        pass_filenames: false
 
 default_language_version:
       python: python3

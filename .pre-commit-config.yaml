@@ -25,9 +25,10 @@ repos:
       - id: shellcheck
         args: ["--severity=warning"]
   - repo: https://github.com/rapidsai/pre-commit-hooks
-    rev: v1.2.1
+    rev: v1.3.3
     hooks:
       - id: verify-copyright
+      - id: verify-pyproject-license
   - repo: https://github.com/rapidsai/dependency-file-generator
     rev: v1.20.2
     hooks:

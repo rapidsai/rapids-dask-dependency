@@ -25,9 +25,11 @@ requirements:
     - pip
     - setuptools>=77.0.0
   run:
-    - dask ==2026.1.1
-    - dask-core ==2026.1.1
-    - distributed ==2026.1.1
+    # >=,< form is preferred here to allow for post-releases to fix packaging problems (e.g. 2026.1.1.post1)
+    # or targeted releases to fix security issues (like 2026.1.1.1)
+    - dask >=2026.1.1,<2026.1.2
+    - dask-core >=2026.1.1,<2026.1.2
+    - distributed >=2026.1.1,<2026.1.2
 
 tests:
   - script:

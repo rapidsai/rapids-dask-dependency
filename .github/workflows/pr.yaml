@@ -1,14 +1,12 @@
 name: pr
-
 on:
   push:
     branches:
       - "pull-request/[0-9]+"
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
+permissions: {}
 jobs:
   pr-builder:
     needs:
@@ -18,6 +16,8 @@ jobs:
       - telemetry-setup
     secrets: inherit
     uses: rapidsai/shared-workflows/.github/workflows/pr-builder.yaml@main
+    permissions:
+      contents: read
   telemetry-setup:
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -47,6 +47,12 @@ jobs:
       # This selects "ARCH=amd64 + the latest supported Python + CUDA".
       matrix_filter: map(select(.ARCH == "amd64")) | max_by([(.PY_VER|split(".")|map(tonumber)), (.CUDA_VER|split(".")|map(tonumber))]) | [.]
       script: ci/build_python.sh
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
   wheel-build:
     secrets: inherit
     needs: telemetry-setup
@@ -61,6 +67,12 @@ jobs:
       package-type: python
       pure-wheel: true
       append-cuda-suffix: false
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
   telemetry-summarize:
     # This job must use a self-hosted runner to record telemetry traces.
     runs-on: linux-amd64-cpu4
@@ -70,3 +82,5 @@ jobs:
     steps:
       - name: Telemetry summarize
         uses: rapidsai/shared-actions/telemetry-dispatch-summarize@main
+    permissions:
+      actions: write

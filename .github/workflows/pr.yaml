@@ -14,7 +14,7 @@ jobs:
       - conda-python-build
       - wheel-build
       - telemetry-setup
-    uses: rapidsai/shared-workflows/.github/workflows/pr-builder.yaml@release/26.06
+    uses: rapidsai/shared-workflows/.github/workflows/pr-builder.yaml@main
     permissions:
       contents: read
   telemetry-setup:
@@ -40,7 +40,7 @@ jobs:
   conda-python-build:
     secrets: inherit # zizmor: ignore[secrets-inherit]
     needs: telemetry-setup
-    uses: rapidsai/shared-workflows/.github/workflows/conda-python-build.yaml@release/26.06
+    uses: rapidsai/shared-workflows/.github/workflows/conda-python-build.yaml@main
     with:
       build_type: pull-request
       # Package is pure Python and only ever requires one build.
@@ -56,7 +56,7 @@ jobs:
   wheel-build:
     secrets: inherit # zizmor: ignore[secrets-inherit]
     needs: telemetry-setup
-    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@release/26.06
+    uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@main
     with:
       build_type: pull-request
       # Package is pure Python and only ever requires one build.

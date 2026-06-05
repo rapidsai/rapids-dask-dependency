@@ -15,9 +15,9 @@ FILES = {
 }
 
 # Patterns to extract version from each file format
-# dependencies.yaml: "- dask>=2026.1.1,<2026.1.2"
-# pyproject.toml: '"dask>=2026.1.1,<2026.1.2",'
-# recipe.yaml: "- dask >=2026.1.1,<2026.1.2" (note the space before ==)
+# dependencies.yaml: "- dask>=2026.3.0,<2026.3.1"
+# pyproject.toml: '"dask>=2026.3.0,<2026.3.1",'
+# recipe.yaml: "- dask >=2026.3.0,<2026.3.1" (note the space before ==)
 VERSION_PATTERN = re.compile(
     r"['\"]?(\w+(?:-\w+)?)\s*>=\s*([0-9]+\.[0-9]+\.[0-9]+),<[0-9]+\.[0-9]+\.[0-9]+['\"]?"
 )

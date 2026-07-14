@@ -27,9 +27,9 @@ requirements:
   run:
     # >=,< form is preferred here to allow for post-releases to fix packaging problems (e.g. 2026.3.0.post1)
     # or targeted releases to fix security issues (like 2026.3.0.1)
-    - dask >=2026.3.0,<2026.3.1
-    - dask-core >=2026.3.0,<2026.3.1
-    - distributed >=2026.3.0,<2026.3.1
+    - dask >=2026.7.1,<2026.7.2
+    - dask-core >=2026.7.1,<2026.7.2
+    - distributed >=2026.7.1,<2026.7.2
 
 tests:
   - script:

@@ -2,8 +2,9 @@
 * @rapidsai/cudf-dask-codeowners
 
 # CI code owners
-/.github/                 @rapidsai/ci-codeowners
 /ci/                      @rapidsai/ci-codeowners
+/.github/                 @rapidsai/ci-codeowners
+/.yamllint.yaml           @rapidsai/ci-codeowners
 
 # packaging codeowners
 /conda/                   @rapidsai/packaging-codeowners

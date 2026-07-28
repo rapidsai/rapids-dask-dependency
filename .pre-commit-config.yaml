@@ -32,8 +32,8 @@ repos:
   - repo: https://github.com/rapidsai/dependency-file-generator
     rev: v1.20.2
     hooks:
-        - id: rapids-dependency-file-generator
-          args: ["--clean", "--warn-all", "--strict"]
+      - id: rapids-dependency-file-generator
+        args: ["--clean", "--warn-all", "--strict"]
   - repo: local
     hooks:
       - id: check-dask-versions
@@ -42,10 +42,15 @@ repos:
         language: python
         files: ^(dependencies\.yaml|pyproject\.toml|conda/recipes/rapids-dask-dependency/recipe\.yaml)$
         pass_filenames: false
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        additional_dependencies: [pyyaml]
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
     rev: v1.24.1
     hooks:
       - id: zizmor
 
 default_language_version:
-      python: python3
+  python: python3

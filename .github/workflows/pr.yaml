@@ -10,6 +10,7 @@ permissions: {}
 jobs:
   pr-builder:
     needs:
+      - build-details
       - checks
       - conda-python-build
       - wheel-build

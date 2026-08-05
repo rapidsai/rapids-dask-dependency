@@ -10,11 +10,11 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.3
     hooks:
       - id: codespell
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.10
+    rev: v0.16.1
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -25,12 +25,12 @@ repos:
       - id: shellcheck
         args: ["--severity=warning"]
   - repo: https://github.com/rapidsai/pre-commit-hooks
-    rev: v1.3.3
+    rev: v1.6.1
     hooks:
       - id: verify-copyright
       - id: verify-pyproject-license
   - repo: https://github.com/rapidsai/dependency-file-generator
-    rev: v1.20.2
+    rev: v1.22.0
     hooks:
       - id: rapids-dependency-file-generator
         args: ["--clean", "--warn-all", "--strict"]
@@ -48,7 +48,7 @@ repos:
       - id: yamllint
         additional_dependencies: [pyyaml]
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.24.1
+    rev: v1.29.0
     hooks:
       - id: zizmor
 

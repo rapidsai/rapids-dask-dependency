@@ -7,7 +7,10 @@ source rapids-configure-sccache
 source rapids-datetime-string
 source rapids-init-pip
 
-version=$(rapids-generate-version)
+version=$(
+    RAPIDS_VERSION_SUFFIX=".post${RAPIDS_DATETIME_STRING}" \
+        rapids-generate-version
+)
 
 sed -i "s/^version = .*/version = \"${version}\"/g" "pyproject.toml"
 

@@ -10,6 +10,7 @@ permissions: {}
 jobs:
   pr-builder:
     needs:
+      - build-details
       - checks
       - conda-python-build
       - wheel-build
@@ -28,6 +29,8 @@ jobs:
         # since other jobs depend on it.
         if: ${{ vars.TELEMETRY_ENABLED == 'true' }}
         uses: rapidsai/shared-actions/telemetry-dispatch-stash-base-env-vars@main
+  build-details:
+    uses: rapidsai/shared-workflows/.github/workflows/compute-build-details.yaml@main
   checks:
     runs-on: ubuntu-latest
     needs: telemetry-setup
@@ -39,10 +42,11 @@ jobs:
       - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
   conda-python-build:
     secrets: inherit # zizmor: ignore[secrets-inherit]
-    needs: telemetry-setup
+    needs: [build-details, telemetry-setup]
     uses: rapidsai/shared-workflows/.github/workflows/conda-python-build.yaml@main
     with:
       build_type: pull-request
+      build-datetime: ${{ needs.build-details.outputs.build-datetime }}
       # Package is pure Python and only ever requires one build.
       # This selects "ARCH=amd64 + the latest supported Python + CUDA".
       matrix_filter: map(select(.ARCH == "amd64")) | max_by([(.PY_VER|split(".")|map(tonumber)), (.CUDA_VER|split(".")|map(tonumber))]) | [.]
@@ -55,10 +59,11 @@ jobs:
       pull-requests: read
   wheel-build:
     secrets: inherit # zizmor: ignore[secrets-inherit]
-    needs: telemetry-setup
+    needs: [build-details, telemetry-setup]
     uses: rapidsai/shared-workflows/.github/workflows/wheels-build.yaml@main
     with:
       build_type: pull-request
+      build-datetime: ${{ needs.build-details.outputs.build-datetime }}
       # Package is pure Python and only ever requires one build.
       # This selects "ARCH=amd64 + the latest supported Python + CUDA".
       matrix_filter: map(select(.ARCH == "amd64")) | max_by([(.PY_VER|split(".")|map(tonumber)), (.CUDA_VER|split(".")|map(tonumber))]) | [.]

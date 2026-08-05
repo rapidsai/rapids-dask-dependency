@@ -1,13 +1,16 @@
 #!/bin/bash
-# Copyright (c) 2023-2026, NVIDIA CORPORATION.
+# Copyright (c) 2023-2026, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 
 set -euo pipefail
 
 source rapids-configure-sccache
-source rapids-date-string
+source rapids-datetime-string
 source rapids-init-pip
 
-version=$(rapids-generate-version)
+version=$(
+    RAPIDS_VERSION_SUFFIX=".post${RAPIDS_DATETIME_STRING}" \
+        rapids-generate-version
+)
 
 sed -i "s/^version = .*/version = \"${version}\"/g" "pyproject.toml"
 

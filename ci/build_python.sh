@@ -1,11 +1,11 @@
 #!/bin/bash
-# Copyright (c) 2022-2025, NVIDIA CORPORATION.
+# Copyright (c) 2022-2026, NVIDIA CORPORATION.
 
 set -euo pipefail
 
 source rapids-configure-sccache
 
-source rapids-date-string
+source rapids-datetime-string
 
 rapids-print-env
 

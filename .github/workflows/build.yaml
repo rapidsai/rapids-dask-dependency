@@ -85,7 +85,6 @@ jobs:
       matrix_filter: map(select(.ARCH == "amd64")) | max_by([(.PY_VER|split(".")|map(tonumber)), (.CUDA_VER|split(".")|map(tonumber))]) | [.]
       package-name: rapids-dask-dependency
       package-type: python
-      publish_to_pypi: false # PyPI publication is handled by Kitmaker.
       pure-wheel: true
       append-cuda-suffix: false
     permissions:

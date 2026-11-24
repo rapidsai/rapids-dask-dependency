@@ -31,7 +31,6 @@ dependencies:
       - output_types: [pyproject, requirements]
         packages:
           - setuptools>=77.0.0
-          - wheel
   python_run:
     common:
       - output_types: [pyproject, requirements]
